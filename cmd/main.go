@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"image/jpeg"
 	"log"
 	"os"
 	"strings"
@@ -20,6 +21,18 @@ func main() {
 
 	var files, err = imageconvert.ListFiles(rootDir)
 	imageconvert.HandleErr("list", err)
+
+	for file := range files {
+		if strings.HasSuffix(file, "jpg") {
+			var file, err = os.Open(file)
+			imageconvert.HandleErr("open", err)
+			_, err = jpeg.Decode(file)
+			if err != nil {
+				fmt.Println(file.Name(), err)
+			}
+		}
+	}
+	fmt.Println("all good")
 
 	for file := range files {
 		if strings.HasSuffix(file, ".png") {
