@@ -42,9 +42,9 @@ func main() {
 	for _, filename := range webps {
 		// we dont want to overwite an existing jpg
 		if _, err := os.Stat(strings.Replace(filename, ".webp", ".jpg", 1)); err == nil {
-			imageconvert.ConvertPng(filename, strings.Replace(filename, ".webp", "-"+time.Now().String()+".jpg", 1))
+			imageconvert.ConvertWebp(filename, strings.Replace(filename, ".webp", "-"+time.Now().String()+".jpg", 1))
 		} else {
-			imageconvert.ConvertPng(filename, strings.Replace(filename, ".webp", ".jpg", 1))
+			imageconvert.ConvertWebp(filename, strings.Replace(filename, ".webp", ".jpg", 1))
 		}
 		imageconvert.HandleErr("remove", os.Remove(filename))
 	}
