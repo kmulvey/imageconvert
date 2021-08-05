@@ -2,7 +2,6 @@ package imageconvert
 
 import (
 	"fmt"
-	"os"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -24,8 +23,8 @@ func QualityCheck(maxQuality int, file string) bool {
 }
 
 func CompressJPEG(quality int, imagePath string) {
-	var before, err = os.Stat(imagePath)
-	HandleErr(fmt.Sprintf("Incorect file name %s", imagePath), err)
+	//var before, err = os.Stat(imagePath)
+	//HandleErr(fmt.Sprintf("Incorect file name %s", imagePath), err)
 
 	// have to escape the file spaces for the exec call
 	var escapedImagePath = EscapeFilePath(imagePath)
@@ -36,17 +35,19 @@ func CompressJPEG(quality int, imagePath string) {
 	output, err := exec.Command("bash", "-c", cmdStr).Output()
 	HandleErr("Exec", err)
 
-	if strings.Contains(string(output), "skipped.") {
+	if strings.Contains(string(output), "optimized.") {
 		log.Info(string(output))
+
+		/*
+			after, err := os.Stat(imagePath)
+			HandleErr("stat after", err)
+
+			var afterSize = float64(after.Size())
+			var beforeSize = float64(before.Size())
+			log.WithFields(log.Fields{
+				"file":  imagePath,
+				"ratio": ((afterSize - beforeSize) / beforeSize) * 100,
+			}).Info("Compress")
+		*/
 	}
-
-	after, err := os.Stat(imagePath)
-	HandleErr("stat after", err)
-
-	var afterSize = float64(after.Size())
-	var beforeSize = float64(before.Size())
-	log.WithFields(log.Fields{
-		"file":  imagePath,
-		"ratio": ((afterSize - beforeSize) / beforeSize) * 100,
-	}).Info("Compress")
 }

@@ -25,9 +25,9 @@ func ListFiles(root string) []string {
 	return allFiles
 }
 
-func FilerPNG(files map[string]bool) []string {
+func FilerPNG(files []string) []string {
 	var filtered []string
-	for file := range files {
+	for _, file := range files {
 		if strings.HasSuffix(file, ".png") {
 			filtered = append(filtered, file)
 		}
@@ -35,9 +35,9 @@ func FilerPNG(files map[string]bool) []string {
 	return filtered
 }
 
-func FilerWEBP(files map[string]bool) []string {
+func FilerWEBP(files []string) []string {
 	var filtered []string
-	for file := range files {
+	for _, file := range files {
 		if strings.HasSuffix(file, ".webp") {
 			filtered = append(filtered, file)
 		}
