@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"image/jpeg"
 	"image/png"
-	"io/ioutil"
-	"log"
 	"os"
-	"path"
-	"strings"
+
+	log "github.com/sirupsen/logrus"
 
 	"golang.org/x/image/webp"
 )
@@ -23,11 +21,12 @@ func ConvertPng(from, to string) {
 	out, err := os.Create(to)
 	HandleErr("png create", err)
 
-	err = jpeg.Encode(out, pngData, &jpeg.Options{Quality: 100})
+	err = jpeg.Encode(out, pngData, &jpeg.Options{Quality: 85})
 	HandleErr("jpg encode", err)
 
 	err = out.Close()
 	HandleErr("png-jpg close", err)
+
 	err = pngFile.Close()
 	HandleErr("png close", err)
 }
@@ -42,38 +41,14 @@ func ConvertWebp(from, to string) {
 	out, err := os.Create(to)
 	HandleErr("webp create", err)
 
-	err = jpeg.Encode(out, webpData, &jpeg.Options{Quality: 100})
+	err = jpeg.Encode(out, webpData, &jpeg.Options{Quality: 85})
 	HandleErr("jpg encode", err)
 
 	err = out.Close()
 	HandleErr("webp-jpg close", err)
+
 	err = webpFile.Close()
 	HandleErr("webp close", err)
-}
-
-func ListFiles(root string) (map[string]bool, error) {
-	var allFiles = make(map[string]bool)
-	var staticBool bool
-	files, err := ioutil.ReadDir(root)
-	if err != nil {
-		return allFiles, err
-	}
-	for _, file := range files {
-		if file.IsDir() {
-			var subFiles, err = ListFiles(path.Join(root, file.Name()))
-			if err != nil {
-				return allFiles, err
-			}
-			for subFile := range subFiles {
-				allFiles[subFile] = staticBool
-			}
-		} else {
-			if strings.HasSuffix(file.Name(), ".png") || strings.HasSuffix(file.Name(), ".webp") {
-				allFiles[path.Join(root, file.Name())] = staticBool
-			}
-		}
-	}
-	return allFiles, nil
 }
 
 func HandleErr(prefix string, err error) {
