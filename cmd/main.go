@@ -2,54 +2,64 @@ package main
 
 import (
 	"flag"
-	"fmt"
-	"image/jpeg"
-	"log"
 	"os"
 	"strings"
+	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/kmulvey/imageconvert/pkg/imageconvert"
 )
 
 func main() {
 	var rootDir string
+	var compress bool
+
 	flag.StringVar(&rootDir, "dir", "", "directory (abs path)")
+	flag.BoolVar(&compress, "compress", false, "compress")
 	flag.Parse()
 	if strings.TrimSpace(rootDir) == "" {
 		log.Fatal("directory not provided")
 	}
 
-	var files, err = imageconvert.ListFiles(rootDir)
-	imageconvert.HandleErr("list", err)
+	// these are all the files all the way down the dir tree
+	var files = imageconvert.ListFiles(rootDir)
 
-	for file := range files {
-		if strings.HasSuffix(file, "jpg") {
-			var file, err = os.Open(file)
-			imageconvert.HandleErr("open", err)
-			_, err = jpeg.Decode(file)
-			if err != nil {
-				fmt.Println(file.Name(), err)
-			}
-		}
-	}
-	fmt.Println("all good")
-
-	for file := range files {
-		if strings.HasSuffix(file, ".png") {
-			if _, err := os.Stat(strings.Replace(file, ".png", ".jpg", 1)); err == nil {
-				imageconvert.ConvertPng(file, strings.Replace(file, ".png", "-2.jpg", 1))
-			} else {
-				imageconvert.ConvertPng(file, strings.Replace(file, ".png", ".jpg", 1))
-			}
+	// png -> jpg
+	var pngs = imageconvert.FilerPNG(files)
+	for _, filename := range pngs {
+		// we dont want to overwite an existing jpg
+		if _, err := os.Stat(strings.Replace(filename, ".png", ".jpg", 1)); err == nil {
+			imageconvert.ConvertPng(filename, strings.Replace(filename, ".png", "-"+time.Now().String()+".jpg", 1))
 		} else {
-			if _, err := os.Stat(strings.Replace(file, ".webp", ".jpg", 1)); err == nil {
-				imageconvert.ConvertWebp(file, strings.Replace(file, ".webp", "-2.jpg", 1))
-			} else {
-				imageconvert.ConvertWebp(file, strings.Replace(file, ".webp", ".jpg", 1))
-			}
+			imageconvert.ConvertPng(filename, strings.Replace(filename, ".png", ".jpg", 1))
 		}
-		err = os.Remove(file)
-		imageconvert.HandleErr("remove", err)
-		fmt.Println("converted", file)
+		imageconvert.HandleErr("remove", os.Remove(filename))
 	}
+
+	// webp -> jpg
+	var webps = imageconvert.FilerWEBP(files)
+	for _, filename := range webps {
+		// we dont want to overwite an existing jpg
+		if _, err := os.Stat(strings.Replace(filename, ".webp", ".jpg", 1)); err == nil {
+			imageconvert.ConvertPng(filename, strings.Replace(filename, ".webp", "-"+time.Now().String()+".jpg", 1))
+		} else {
+			imageconvert.ConvertPng(filename, strings.Replace(filename, ".webp", ".jpg", 1))
+		}
+		imageconvert.HandleErr("remove", os.Remove(filename))
+	}
+
+	var compressed int
+	if compress {
+		for _, filename := range imageconvert.FilerJPG(files) {
+			imageconvert.CompressJPEG(85, filename)
+			compressed++
+		}
+	}
+
+	log.WithFields(log.Fields{
+		"converted pngs":  len(pngs),
+		"converted webps": len(webps),
+		"compressed":      compressed,
+	}).Info("Done")
 }
