@@ -11,6 +11,26 @@ import (
 	"golang.org/x/image/webp"
 )
 
+func ConvertJpg(from, to string) {
+	var origFile, err = os.Open(from)
+	HandleErr("jpg open", err)
+
+	pngData, err := jpeg.Decode(origFile)
+	HandleErr("jpg decode", err)
+
+	err = origFile.Close()
+	HandleErr("jpg close", err)
+
+	out, err := os.Create(to)
+	HandleErr("jpg create", err)
+
+	err = jpeg.Encode(out, pngData, &jpeg.Options{Quality: 85})
+	HandleErr("jpg encode", err)
+
+	err = out.Close()
+	HandleErr("jpg close", err)
+}
+
 func ConvertPng(from, to string) {
 	var pngFile, err = os.Open(from)
 	HandleErr("png open", err)

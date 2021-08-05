@@ -6,51 +6,53 @@ import (
 	"strings"
 )
 
-func ListFiles(root string) (map[string]bool, error) {
-	var allFiles = make(map[string]bool)
-	var staticBool bool
+func ListFiles(root string) []string {
+	var allFiles []string
 	files, err := ioutil.ReadDir(root)
-	if err != nil {
-		return allFiles, err
-	}
+	HandleErr("readdir", err)
+
 	for _, file := range files {
 		if file.IsDir() {
-			var subFiles, err = ListFiles(path.Join(root, file.Name()))
-			if err != nil {
-				return allFiles, err
-			}
-			for subFile := range subFiles {
-				allFiles[subFile] = staticBool
+			var subFiles = ListFiles(path.Join(root, file.Name()))
+
+			for _, subFile := range subFiles {
+				allFiles = append(allFiles, subFile)
 			}
 		} else {
-			allFiles[path.Join(root, file.Name())] = staticBool
+			allFiles = append(allFiles, path.Join(root, file.Name()))
 		}
 	}
-	return allFiles, nil
+	return allFiles
 }
 
-func FilerPNG(files map[string]bool) {
+func FilerPNG(files map[string]bool) []string {
+	var filtered []string
 	for file := range files {
-		if !strings.HasSuffix(file, ".png") {
-			delete(files, file)
+		if strings.HasSuffix(file, ".png") {
+			filtered = append(filtered, file)
 		}
 	}
+	return filtered
 }
 
-func FilerWEBP(files map[string]bool) {
+func FilerWEBP(files map[string]bool) []string {
+	var filtered []string
 	for file := range files {
-		if !strings.HasSuffix(file, ".webp") {
-			delete(files, file)
+		if strings.HasSuffix(file, ".webp") {
+			filtered = append(filtered, file)
 		}
 	}
+	return filtered
 }
 
-func FilerJPG(files map[string]bool) {
-	for file := range files {
-		if !strings.HasSuffix(file, ".jpg") || !strings.HasSuffix(file, ".jpeg") {
-			delete(files, file)
+func FilerJPG(files []string) []string {
+	var filtered []string
+	for _, file := range files {
+		if strings.HasSuffix(file, ".jpg") || strings.HasSuffix(file, ".jpeg") {
+			filtered = append(filtered, file)
 		}
 	}
+	return filtered
 }
 
 func EscapeFilePath(file string) string {
