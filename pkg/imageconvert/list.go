@@ -56,6 +56,6 @@ func FilerJPG(files []string) []string {
 }
 
 func EscapeFilePath(file string) string {
-	file = strings.ReplaceAll(file, " ", `\ `)
-	return strings.ReplaceAll(file, "'", `\'`)
+	var r = strings.NewReplacer(" ", `\ `, "(", `\(`, ")", `\)`, "'", `\'`, "&", `\&`, "@", `\@`)
+	return r.Replace(file)
 }
