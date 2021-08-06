@@ -25,13 +25,17 @@ func QualityCheck(maxQuality int, file string) bool {
 func CompressJPEG(quality int, imagePath string) {
 	// have to escape the file spaces for the exec call
 	var escapedImagePath = EscapeFilePath(imagePath)
-	var cmdStr = fmt.Sprintf("jpegoptim -p -o -t -m%d %s",
+	var cmdStr = fmt.Sprintf("jpegoptim -p -o -m%d %s",
 		quality,
 		escapedImagePath)
 
 	output, err := exec.Command("bash", "-c", cmdStr).Output()
 	if err != nil {
-		log.Fatal("Compress exec fail: ", err.Error(), ", ", string(output))
+		log.WithFields(log.Fields{
+			"err":        err,
+			"cmd output": string(output),
+			"file":       imagePath,
+		}).Fatal("Compress exec fail")
 	}
 	HandleErr("Exec", err)
 
