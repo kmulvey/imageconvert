@@ -67,7 +67,7 @@ func main() {
 	var compressed int
 	if compress {
 		// build a map of already compressed files
-		var compressLog, err = os.OpenFile("compress.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0755)
+		var compressLog, err = os.OpenFile("compress.log", os.O_APPEND|os.O_CREATE|os.O_RDWR, 0755)
 		imageconvert.HandleErr("compress log open", err)
 		defer func() {
 			imageconvert.HandleErr("close compress log", compressLog.Close())
@@ -75,7 +75,7 @@ func main() {
 
 		var scanner = bufio.NewScanner(compressLog)
 		scanner.Split(bufio.ScanLines)
-		var compressedFiles map[string]bool
+		var compressedFiles = make(map[string]bool)
 		var staticBool bool
 
 		for scanner.Scan() {
