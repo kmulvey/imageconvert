@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"os"
 	"strings"
@@ -65,10 +66,29 @@ func main() {
 
 	var compressed int
 	if compress {
+		// build a map of already compressed files
+		var compressLog, err = os.OpenFile("compress.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0755)
+		imageconvert.HandleErr("compress log open", err)
+		defer func() {
+			imageconvert.HandleErr("close compress log", compressLog.Close())
+		}()
+
+		var scanner = bufio.NewScanner(compressLog)
+		scanner.Split(bufio.ScanLines)
+		var compressedFiles map[string]bool
+		var staticBool bool
+
+		for scanner.Scan() {
+			compressedFiles[scanner.Text()] = staticBool
+		}
+
 		// some files may have gotten renamed above so we call ListFiles again
 		for _, filename := range imageconvert.FilerJPG(imageconvert.ListFiles(rootDir)) {
-			imageconvert.CompressJPEG(85, filename)
-			compressed++
+			if _, found := compressedFiles[filename]; !found {
+				imageconvert.CompressJPEG(85, filename)
+				compressLog.WriteString(filename + "\n")
+				compressed++
+			}
 		}
 	}
 
