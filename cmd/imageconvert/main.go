@@ -25,6 +25,20 @@ func main() {
 	// these are all the files all the way down the dir tree
 	var files = imageconvert.ListFiles(rootDir)
 
+	// consistant extention for jpg
+	var jpegRename int
+	for _, filename := range imageconvert.FilerJPG(files) {
+		if strings.HasSuffix(filename, ".JPG") {
+			imageconvert.HandleErr("rename", os.Rename(filename, strings.ReplaceAll(filename, ".JPG", ".jpg")))
+			jpegRename++
+		} else if strings.HasSuffix(strings.ToLower(filename), ".jpeg") {
+			var newFile = strings.ReplaceAll(filename, ".jpeg", ".jpg")
+			newFile = strings.ReplaceAll(newFile, ".JPEG", ".jpg")
+			imageconvert.HandleErr("rename", os.Rename(filename, newFile))
+			jpegRename++
+		}
+	}
+
 	// png -> jpg
 	var pngs = imageconvert.FilerPNG(files)
 	for _, filename := range pngs {
@@ -51,7 +65,8 @@ func main() {
 
 	var compressed int
 	if compress {
-		for _, filename := range imageconvert.FilerJPG(files) {
+		// some files may have gotten renamed above so we call ListFiles again
+		for _, filename := range imageconvert.FilerJPG(imageconvert.ListFiles(rootDir)) {
 			imageconvert.CompressJPEG(85, filename)
 			compressed++
 		}
@@ -61,5 +76,6 @@ func main() {
 		"converted pngs":  len(pngs),
 		"converted webps": len(webps),
 		"compressed":      compressed,
+		"jpgs renamed":    jpegRename,
 	}).Info("Done")
 }
