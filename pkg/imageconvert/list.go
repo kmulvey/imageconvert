@@ -28,7 +28,7 @@ func ListFiles(root string) []string {
 func FilerPNG(files []string) []string {
 	var filtered []string
 	for _, file := range files {
-		if strings.HasSuffix(file, ".png") {
+		if strings.HasSuffix(strings.ToLower(file), ".png") {
 			filtered = append(filtered, file)
 		}
 	}
@@ -38,7 +38,7 @@ func FilerPNG(files []string) []string {
 func FilerWEBP(files []string) []string {
 	var filtered []string
 	for _, file := range files {
-		if strings.HasSuffix(file, ".webp") {
+		if strings.HasSuffix(strings.ToLower(file), ".webp") {
 			filtered = append(filtered, file)
 		}
 	}
@@ -48,7 +48,7 @@ func FilerWEBP(files []string) []string {
 func FilerJPG(files []string) []string {
 	var filtered []string
 	for _, file := range files {
-		if strings.HasSuffix(file, ".jpg") || strings.HasSuffix(file, ".jpeg") {
+		if strings.HasSuffix(strings.ToLower(file), ".jpg") || strings.HasSuffix(strings.ToLower(file), ".jpeg") {
 			filtered = append(filtered, file)
 		}
 	}
