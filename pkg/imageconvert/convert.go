@@ -56,7 +56,7 @@ func ConvertWebp(from, to string) {
 	HandleErr("webp open", err)
 
 	webpData, err := webp.Decode(webpFile)
-	HandleErr("webp decode", err)
+	HandleErr("webp decode: "+from, err)
 
 	out, err := os.Create(to)
 	HandleErr("webp create", err)

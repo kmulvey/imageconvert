@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"flag"
+	"fmt"
 	"os"
 	"strings"
 	"time"
@@ -16,15 +17,27 @@ func main() {
 	var rootDir string
 	var compress bool
 
-	flag.StringVar(&rootDir, "dir", "", "directory (abs path)")
+	flag.StringVar(&rootDir, "dir", "", "directory (abs path), could also be a single file")
 	flag.BoolVar(&compress, "compress", false, "compress")
 	flag.Parse()
 	if strings.TrimSpace(rootDir) == "" {
 		log.Fatal("directory not provided")
 	}
 
-	// these are all the files all the way down the dir tree
-	var files = imageconvert.ListFiles(rootDir)
+	// dir or file?
+	var fileInfo, err = os.Stat(rootDir)
+	if err != nil {
+		log.Fatal("could not stat file/dir ", err)
+	}
+
+	var files = make([]string, 1) // we will always have at least one
+	if !fileInfo.IsDir() {
+		files[0] = rootDir
+		fmt.Println(files)
+	} else {
+		// these are all the files all the way down the dir tree
+		files = imageconvert.ListFiles(rootDir)
+	}
 
 	// consistant extention for jpg
 	var jpegRename int
