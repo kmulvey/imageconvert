@@ -3,112 +3,92 @@ package main
 import (
 	"bufio"
 	"flag"
-	"fmt"
 	"os"
 	"strings"
-	"time"
 
 	log "github.com/sirupsen/logrus"
 
 	"github.com/kmulvey/imageconvert/pkg/imageconvert"
 )
 
+const staticBool = false
+
 func main() {
+	log.SetFormatter(&log.TextFormatter{
+		FullTimestamp: true,
+	})
+
 	var rootDir string
+	var processedLogFile string
 	var compress bool
 
 	flag.StringVar(&rootDir, "dir", "", "directory (abs path), could also be a single file")
+	flag.StringVar(&processedLogFile, "log-file", "processed.log", "the file to write processes images to, so that we dont processes them again next time")
 	flag.BoolVar(&compress, "compress", false, "compress")
 	flag.Parse()
 	if strings.TrimSpace(rootDir) == "" {
 		log.Fatal("directory not provided")
 	}
 
-	// dir or file?
-	var fileInfo, err = os.Stat(rootDir)
+	// open the file
+	var processedLog, err = os.OpenFile(processedLogFile, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0755)
+	imageconvert.HandleErr("processedLog open", err)
+	defer func() {
+		imageconvert.HandleErr("close processedLog", processedLog.Close())
+	}()
+
+	var skipMap = getSkipMap(processedLog)
+
+	// Did they give us a dir or file?
+	fileInfo, err := os.Stat(rootDir)
 	if err != nil {
 		log.Fatal("could not stat file/dir ", err)
 	}
-
 	var files = make([]string, 1) // we will always have at least one
 	if !fileInfo.IsDir() {
 		files[0] = rootDir
-		fmt.Println(files)
 	} else {
 		// these are all the files all the way down the dir tree
-		files = imageconvert.ListFiles(rootDir)
+		files = imageconvert.ListFiles(rootDir, skipMap)
 	}
 
-	// consistant extention for jpg
-	var jpegRename int
-	for _, filename := range imageconvert.FilerJPG(files) {
-		if strings.HasSuffix(filename, ".JPG") {
-			imageconvert.HandleErr("rename", os.Rename(filename, strings.ReplaceAll(filename, ".JPG", ".jpg")))
-			jpegRename++
-		} else if strings.HasSuffix(strings.ToLower(filename), ".jpeg") {
-			var newFile = strings.ReplaceAll(filename, ".jpeg", ".jpg")
-			newFile = strings.ReplaceAll(newFile, ".JPEG", ".jpg")
-			imageconvert.HandleErr("rename", os.Rename(filename, newFile))
-			jpegRename++
-		}
-	}
-
-	// png -> jpg
-	var pngs = imageconvert.FilerPNG(files)
-	for _, filename := range pngs {
-		// we dont want to overwite an existing jpg
-		if _, err := os.Stat(strings.Replace(filename, ".png", ".jpg", 1)); err == nil {
-			imageconvert.ConvertPng(filename, strings.Replace(filename, ".png", "-"+time.Now().String()+".jpg", 1))
-		} else {
-			imageconvert.ConvertPng(filename, strings.Replace(filename, ".png", ".jpg", 1))
-		}
-		imageconvert.HandleErr("remove", os.Remove(filename))
-	}
-
-	// webp -> jpg
-	var webps = imageconvert.FilerWEBP(files)
-	for _, filename := range webps {
-		// we dont want to overwite an existing jpg
-		if _, err := os.Stat(strings.Replace(filename, ".webp", ".jpg", 1)); err == nil {
-			imageconvert.ConvertWebp(filename, strings.Replace(filename, ".webp", "-"+time.Now().String()+".jpg", 1))
-		} else {
-			imageconvert.ConvertWebp(filename, strings.Replace(filename, ".webp", ".jpg", 1))
-		}
-		imageconvert.HandleErr("remove", os.Remove(filename))
+	// convert all the images to jpg
+	for i, filename := range files {
+		files[i] = imageconvert.Convert(filename)
 	}
 
 	var compressed int
 	if compress {
-		// build a map of already compressed files
-		var compressLog, err = os.OpenFile("compress.log", os.O_APPEND|os.O_CREATE|os.O_RDWR, 0755)
-		imageconvert.HandleErr("compress log open", err)
-		defer func() {
-			imageconvert.HandleErr("close compress log", compressLog.Close())
-		}()
-
-		var scanner = bufio.NewScanner(compressLog)
-		scanner.Split(bufio.ScanLines)
-		var compressedFiles = make(map[string]bool)
-		var staticBool bool
-
-		for scanner.Scan() {
-			compressedFiles[scanner.Text()] = staticBool
-		}
-
-		// some files may have gotten renamed above so we call ListFiles again
-		for _, filename := range imageconvert.FilerJPG(imageconvert.ListFiles(rootDir)) {
-			if _, found := compressedFiles[filename]; !found {
+		for _, filename := range files {
+			if _, found := skipMap[filename]; !found {
 				imageconvert.CompressJPEG(85, filename)
-				compressLog.WriteString(filename + "\n")
+				_, err = processedLog.WriteString(filename + "\n")
+				imageconvert.HandleErr("write to log", err)
 				compressed++
 			}
 		}
 	}
 
 	log.WithFields(log.Fields{
-		"converted pngs":  len(pngs),
-		"converted webps": len(webps),
+		"converted jpgs":  len(imageconvert.FilerJPG(files)),
+		"converted pngs":  len(imageconvert.FilerPNG(files)),
+		"converted webps": len(imageconvert.FilerWEBP(files)),
 		"compressed":      compressed,
-		"jpgs renamed":    jpegRename,
 	}).Info("Done")
+}
+
+// getSkipMap read the log from the last time this was run and
+// puts those filenames in a map so we dont have to process them again
+// If you want to reprocess, just delete the file
+func getSkipMap(processedImages *os.File) map[string]bool {
+
+	var scanner = bufio.NewScanner(processedImages)
+	scanner.Split(bufio.ScanLines)
+	var compressedFiles = make(map[string]bool)
+
+	for scanner.Scan() {
+		compressedFiles[scanner.Text()] = staticBool
+	}
+
+	return compressedFiles
 }
