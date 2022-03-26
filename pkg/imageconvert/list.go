@@ -16,11 +16,7 @@ func ListFiles(root string, skipMap map[string]bool) []string {
 
 	for _, file := range files {
 		if file.IsDir() {
-			var subFiles = ListFiles(path.Join(root, file.Name()), skipMap)
-
-			for _, subFile := range subFiles {
-				allFiles = append(allFiles, subFile)
-			}
+			allFiles = append(allFiles, ListFiles(path.Join(root, file.Name()), skipMap)...)
 		} else {
 			if _, exists := skipMap[file.Name()]; !exists { // we dont process images that have already been processed
 				if suffixRegex.MatchString(strings.ToLower(file.Name())) {
