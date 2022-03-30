@@ -54,7 +54,6 @@ func main() {
 		files = imageconvert.ListFiles(rootDir, skipMap)
 	}
 
-	// convert all the images to jpg
 	log.Info("converting images to jpeg")
 	var conversionTotals = make(map[string]int)
 	var imageType string
@@ -76,10 +75,28 @@ func main() {
 		}
 	}
 
+	log.Info("rename .jpeg to .jpg")
+	var renamedTotal int
+	for _, old := range imageconvert.FilerJPEG(files) {
+		var renamed = strings.ReplaceAll(old, ".jpeg", ".jpg")
+
+		if imageconvert.WouldOverwrite(old, renamed) {
+			log.Warnf("renaming %s would overwrite an existing jpeg, skipping", old)
+			continue
+		}
+
+		err = os.Rename(old, renamed)
+		if err != nil {
+			log.Fatalf("could rename file: %s, err: %s", old, err.Error())
+		}
+		renamedTotal++
+	}
+
 	log.WithFields(log.Fields{
 		"converted pngs":  conversionTotals["png"],
 		"converted webps": conversionTotals["webp"],
 		"compressed":      compressed,
+		"jpegs renamed":   renamedTotal,
 	}).Info("Done")
 }
 
