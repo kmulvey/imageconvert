@@ -7,6 +7,8 @@ import (
 	"strings"
 )
 
+// ListFiles lists every file in a directory (recursive) and
+// optionally ignores files given in skipMap
 func ListFiles(root string, skipMap map[string]bool) []string {
 	var allFiles []string
 	files, err := ioutil.ReadDir(root)
@@ -28,6 +30,7 @@ func ListFiles(root string, skipMap map[string]bool) []string {
 	return allFiles
 }
 
+// FilterPNG filters a slice of files to return only pngs
 func FilerPNG(files []string) []string {
 	var filtered []string
 	for _, file := range files {
@@ -38,6 +41,7 @@ func FilerPNG(files []string) []string {
 	return filtered
 }
 
+// FilterWEBP filters a slice of files to return only webps
 func FilerWEBP(files []string) []string {
 	var filtered []string
 	for _, file := range files {
@@ -48,6 +52,7 @@ func FilerWEBP(files []string) []string {
 	return filtered
 }
 
+// FilterJPG filters a slice of files to return only jpgs
 func FilerJPG(files []string) []string {
 	var filtered []string
 	for _, file := range files {
@@ -58,6 +63,7 @@ func FilerJPG(files []string) []string {
 	return filtered
 }
 
+// EscapeFilePath escapes spaces in the filepath used for an exec() call
 func EscapeFilePath(file string) string {
 	var r = strings.NewReplacer(" ", `\ `, "(", `\(`, ")", `\)`, "'", `\'`, "&", `\&`, "@", `\@`)
 	return r.Replace(file)

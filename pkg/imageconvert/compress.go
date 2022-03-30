@@ -9,6 +9,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// QualityCheck uses imagemagick to determine the quality of the image
+// and returns true if the quality is above a given threshold
 func QualityCheck(maxQuality int, file string) bool {
 	file = EscapeFilePath(file)
 	cmd := fmt.Sprintf("identify -format %s %s", "'%Q'", file)
@@ -22,6 +24,7 @@ func QualityCheck(maxQuality int, file string) bool {
 	return int64(maxQuality) >= imageQuality
 }
 
+// CompressJPEG uses jpegoptim to compress the image
 func CompressJPEG(quality int, imagePath string) {
 	// have to escape the file spaces for the exec call
 	var escapedImagePath = EscapeFilePath(imagePath)

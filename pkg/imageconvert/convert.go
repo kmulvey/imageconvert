@@ -1,7 +1,7 @@
 package imageconvert
 
 import (
-	"fmt"
+	"errors"
 	"image"
 	"image/jpeg"
 	_ "image/png"
@@ -14,6 +14,12 @@ import (
 	_ "golang.org/x/image/webp"
 )
 
+// make sure the following are always imported above, some editors may remove them
+// _ "golang.org/x/image/webp"
+// _ "image/png"
+// "image/jpeg"
+
+// Convert converts pngs and webps to jpeg
 func Convert(from string) string {
 	var origFile, err = os.Open(from)
 	HandleErr("img open", err)
@@ -49,8 +55,14 @@ func Convert(from string) string {
 	return newFile
 }
 
-func HandleErr(prefix string, err error) {
-	if err != nil {
-		log.Fatal(fmt.Errorf("%s: %w", prefix, err))
+// fileExists looks to see if the file were to be converted to a jpeg,
+// would it overwite an existing jpg file with the same name
+func fileExists(path string) bool {
+	var ext = filepath.Ext(path)
+	var jpgPath = strings.Replace(path, ext, ".jpg", 1)
+
+	if _, err := os.Stat(jpgPath); errors.Is(err, os.ErrNotExist) {
+		return false
 	}
+	return true
 }
