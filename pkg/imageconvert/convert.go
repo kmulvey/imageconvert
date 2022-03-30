@@ -35,8 +35,16 @@ func Convert(from string) string {
 		return from
 	}
 
+	if wouldOverwrite(from) {
+		log.Warnf("converting %s would overwrite an existing jpeg, skipping", from)
+		return from
+	}
+
 	err = origFile.Close()
 	HandleErr("input img close", err)
+
+	err = os.Remove(from)
+	HandleErr("remove input file", err)
 
 	out, err := os.Create(newFile)
 	HandleErr("new jpg create", err)
@@ -55,9 +63,9 @@ func Convert(from string) string {
 	return newFile
 }
 
-// fileExists looks to see if the file were to be converted to a jpeg,
+// wouldOverwrite looks to see if the file were to be converted to a jpeg,
 // would it overwite an existing jpg file with the same name
-func fileExists(path string) bool {
+func wouldOverwrite(path string) bool {
 	var ext = filepath.Ext(path)
 	var jpgPath = strings.Replace(path, ext, ".jpg", 1)
 
