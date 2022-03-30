@@ -25,6 +25,10 @@ import (
 func Convert(from string) (string, string) {
 	var origFile, err = os.Open(from)
 	HandleErr("img open", err)
+	defer func() {
+		err = origFile.Close()
+		HandleErr("input img close", err)
+	}()
 
 	var ext = filepath.Ext(from)
 	var newFile = strings.Replace(from, ext, ".jpg", 1)
@@ -51,9 +55,6 @@ func Convert(from string) (string, string) {
 			return from, ""
 		}
 	}
-
-	err = origFile.Close()
-	HandleErr("input img close", err)
 
 	err = os.Remove(from)
 	HandleErr("remove input file", err)
