@@ -41,6 +41,7 @@ func main() {
 	var skipMap = getSkipMap(processedLog)
 
 	// Did they give us a dir or file?
+	log.Info("building file list")
 	fileInfo, err := os.Stat(rootDir)
 	if err != nil {
 		log.Fatal("could not stat file/dir ", err)
