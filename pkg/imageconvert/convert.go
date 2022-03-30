@@ -37,9 +37,19 @@ func Convert(from string) (string, string) {
 		return from, ""
 	}
 
-	if wouldOverwrite(from) {
-		log.Warnf("converting %s would overwrite an existing jpeg, skipping", from)
-		return from, ""
+	// dont convert images that would result in an overwrite
+	// e.g. a.png a.jpg exist, thus converting a.png would overwrite a.jpg,
+	// so we let the user handle it
+	// EXCEPT fake jpgs:
+	// a "fake jpg" is an image that has the extension .jpg or .jpeg but is
+	// really a different format e.g. png image named "x.jpg"
+	// basically we cant just trust file extensions
+	if WouldOverwrite(from, imageType) {
+		// we only warn if the detected image format has the corresponding extension
+		if "."+imageType == ext {
+			log.Warnf("converting %s would overwrite an existing jpeg, skipping", from)
+			return from, ""
+		}
 	}
 
 	err = origFile.Close()
@@ -65,12 +75,13 @@ func Convert(from string) (string, string) {
 	return newFile, imageType
 }
 
-// wouldOverwrite looks to see if the file were to be converted to a jpeg,
+// WouldOverwrite looks to see if the file were to be converted to a jpeg,
 // would it overwite an existing jpg file with the same name
-func wouldOverwrite(path string) bool {
+func WouldOverwrite(path, imageType string) bool {
 	var ext = filepath.Ext(path)
 	var jpgPath = strings.Replace(path, ext, ".jpg", 1)
 
+	// find an existing file
 	if _, err := os.Stat(jpgPath); errors.Is(err, os.ErrNotExist) {
 		return false
 	}

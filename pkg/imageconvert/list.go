@@ -56,7 +56,18 @@ func FilerWEBP(files []string) []string {
 func FilerJPG(files []string) []string {
 	var filtered []string
 	for _, file := range files {
-		if strings.HasSuffix(strings.ToLower(file), ".jpg") || strings.HasSuffix(strings.ToLower(file), ".jpeg") {
+		if strings.HasSuffix(strings.ToLower(file), ".jpg") {
+			filtered = append(filtered, file)
+		}
+	}
+	return filtered
+}
+
+// FilterJPEG filters a slice of files to return only jpegs
+func FilerJPEG(files []string) []string {
+	var filtered []string
+	for _, file := range files {
+		if strings.HasSuffix(strings.ToLower(file), ".jpeg") {
 			filtered = append(filtered, file)
 		}
 	}
