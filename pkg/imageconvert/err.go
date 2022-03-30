@@ -10,6 +10,6 @@ import (
 // all errors in this app are fatal
 func HandleErr(prefix string, err error) {
 	if err != nil {
-		log.Fatal(fmt.Errorf("%s: %w", prefix, err))
+		log.Fatal(fmt.Errorf("%s; error: %w", prefix, err))
 	}
 }

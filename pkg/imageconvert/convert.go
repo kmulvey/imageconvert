@@ -27,14 +27,14 @@ func Convert(from string) (string, string) {
 	HandleErr("img open", err)
 	defer func() {
 		err = origFile.Close()
-		HandleErr("input img close", err)
+		HandleErr("input img close: "+from, err)
 	}()
 
 	var ext = filepath.Ext(from)
 	var newFile = strings.Replace(from, ext, ".jpg", 1)
 
 	imgData, imageType, err := image.Decode(origFile)
-	HandleErr("img decode", err)
+	HandleErr("img decode: "+from, err)
 
 	// dont bother converting jpegs
 	if imageType == "jpeg" {
@@ -57,16 +57,16 @@ func Convert(from string) (string, string) {
 	}
 
 	err = os.Remove(from)
-	HandleErr("remove input file", err)
+	HandleErr("remove input file: "+from, err)
 
 	out, err := os.Create(newFile)
-	HandleErr("new jpg create", err)
+	HandleErr("new jpg create: "+from, err)
 
 	err = jpeg.Encode(out, imgData, &jpeg.Options{Quality: 85})
-	HandleErr("jpg encode", err)
+	HandleErr("jpg encode: "+from, err)
 
 	err = out.Close()
-	HandleErr("new jpg close", err)
+	HandleErr("new jpg close: "+from, err)
 
 	log.WithFields(log.Fields{
 		"from": from,
