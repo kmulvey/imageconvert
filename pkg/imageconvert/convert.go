@@ -21,8 +21,13 @@ func Convert(from string) string {
 	var ext = filepath.Ext(from)
 	var newFile = strings.Replace(from, ext, ".jpg", 1)
 
-	imgData, _, err := image.Decode(origFile)
+	imgData, imageType, err := image.Decode(origFile)
 	HandleErr("img decode", err)
+
+	// dont bother converting jpegs
+	if imageType == "jpeg" {
+		return from
+	}
 
 	err = origFile.Close()
 	HandleErr("input img close", err)
