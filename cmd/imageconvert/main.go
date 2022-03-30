@@ -31,6 +31,7 @@ func main() {
 	}
 
 	// open the file
+	log.Info("reading log file")
 	var processedLog, err = os.OpenFile(processedLogFile, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0755)
 	imageconvert.HandleErr("processedLog open", err)
 	defer func() {
@@ -53,10 +54,15 @@ func main() {
 	}
 
 	// convert all the images to jpg
+	log.Info("converting images to jpeg")
+	var conversionTotals = make(map[string]int)
+	var imageType string
 	for i, filename := range files {
-		files[i] = imageconvert.Convert(filename)
+		files[i], imageType = imageconvert.Convert(filename)
+		conversionTotals[imageType]++
 	}
 
+	log.Info("compressing jpegs")
 	var compressed int
 	if compress {
 		for _, filename := range files {
@@ -70,9 +76,8 @@ func main() {
 	}
 
 	log.WithFields(log.Fields{
-		"converted jpgs":  len(imageconvert.FilerJPG(files)),
-		"converted pngs":  len(imageconvert.FilerPNG(files)),
-		"converted webps": len(imageconvert.FilerWEBP(files)),
+		"converted pngs":  conversionTotals["png"],
+		"converted webps": conversionTotals["webp"],
 		"compressed":      compressed,
 	}).Info("Done")
 }

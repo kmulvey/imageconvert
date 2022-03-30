@@ -20,7 +20,9 @@ import (
 // "image/jpeg"
 
 // Convert converts pngs and webps to jpeg
-func Convert(from string) string {
+// this first string returned is the name of the new file
+// the second string returned is the type of image (png, webp)
+func Convert(from string) (string, string) {
 	var origFile, err = os.Open(from)
 	HandleErr("img open", err)
 
@@ -32,12 +34,12 @@ func Convert(from string) string {
 
 	// dont bother converting jpegs
 	if imageType == "jpeg" {
-		return from
+		return from, ""
 	}
 
 	if wouldOverwrite(from) {
 		log.Warnf("converting %s would overwrite an existing jpeg, skipping", from)
-		return from
+		return from, ""
 	}
 
 	err = origFile.Close()
@@ -60,7 +62,7 @@ func Convert(from string) string {
 		"to":   newFile,
 	}).Info("Converted")
 
-	return newFile
+	return newFile, imageType
 }
 
 // wouldOverwrite looks to see if the file were to be converted to a jpeg,

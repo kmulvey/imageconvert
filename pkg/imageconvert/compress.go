@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os/exec"
 	"strconv"
-	"strings"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -42,7 +41,7 @@ func CompressJPEG(quality int, imagePath string) {
 	}
 	HandleErr("Exec", err)
 
-	if strings.Contains(string(output), "optimized.") {
-		log.Info(string(output))
-	}
+	//if strings.Contains(string(output), "optimized.") {
+	log.Info(string(output))
+	//}
 }
