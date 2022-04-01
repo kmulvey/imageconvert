@@ -2,7 +2,7 @@ package imageconvert
 
 import (
 	"io/ioutil"
-	"path"
+	"path/filepath"
 	"regexp"
 	"strings"
 )
@@ -17,12 +17,13 @@ func ListFiles(root string, skipMap map[string]bool) []string {
 	HandleErr("regex", err)
 
 	for _, file := range files {
+		var fullPath = filepath.Join(root, file.Name())
 		if file.IsDir() {
-			allFiles = append(allFiles, ListFiles(path.Join(root, file.Name()), skipMap)...)
+			allFiles = append(allFiles, ListFiles(fullPath, skipMap)...)
 		} else {
-			if _, exists := skipMap[file.Name()]; !exists { // we dont process images that have already been processed
+			if _, exists := skipMap[fullPath]; !exists { // we dont process images that have already been processed
 				if suffixRegex.MatchString(strings.ToLower(file.Name())) {
-					allFiles = append(allFiles, path.Join(root, file.Name()))
+					allFiles = append(allFiles, fullPath)
 				}
 			}
 		}
