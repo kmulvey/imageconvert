@@ -11,7 +11,7 @@ import (
 // optionally ignores files given in skipMap
 func ListFiles(root string, skipMap map[string]bool) []string {
 	var allFiles []string
-	files, err := ioutil.ReadDir(root)
+	var files, err = ioutil.ReadDir(root)
 	HandleErr("readdir", err)
 	suffixRegex, err := regexp.Compile(".*.jpg$|.*.jpeg$|.*.png$|.*.webp$")
 	HandleErr("regex", err)
