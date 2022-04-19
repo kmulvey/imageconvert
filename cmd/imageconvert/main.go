@@ -19,6 +19,7 @@ func main() {
 		TimestampFormat: "2006-01-02 15:04:05",
 	})
 
+	// get the user options
 	var rootDir string
 	var processedLogFile string
 	var compress bool
