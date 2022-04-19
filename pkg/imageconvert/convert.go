@@ -21,7 +21,7 @@ import (
 
 // Convert converts pngs and webps to jpeg
 // this first string returned is the name of the new file
-// the second string returned is the type of image (png, webp)
+// the second string returned is the type of the input image (png, webp), as detected from its encoding, not file name
 func Convert(from string) (string, string) {
 	var origFile, err = os.Open(from)
 	HandleErr("img open", err)
