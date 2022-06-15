@@ -1,10 +1,10 @@
-name: ImageDup
+name: ImageConvert
 
 on: push
 
 jobs:
   build:
-    name: ImageCompress build
+    name: ImageConvert build
     strategy:
       matrix:
         go-version: [1.18.x]
@@ -34,7 +34,7 @@ jobs:
           go build -v -ldflags="-s -w" ./...
 
   release:
-    name: ImageDup release
+    name: ImageConvert release
     runs-on: ubuntu-latest
 
     steps:
@@ -56,4 +56,3 @@ jobs:
           args: release --config .goreleaser.yaml --rm-dist
         env:
           GITHUB_TOKEN: ${{ secrets.GO_RELEASER_GITHUB_TOKEN }}
-
