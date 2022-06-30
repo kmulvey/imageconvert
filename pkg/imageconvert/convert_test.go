@@ -36,7 +36,8 @@ func TestCompress(t *testing.T) {
 		assert.NoError(t, err)
 
 		// convert
-		var convertedImage, format = Convert(testImage)
+		convertedImage, format, err := Convert(testImage)
+		assert.NoError(t, err)
 		assert.Equal(t, "test.jpg", convertedImage)
 		assert.Equal(t, image.Type, format)
 

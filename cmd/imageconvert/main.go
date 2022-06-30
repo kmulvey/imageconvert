@@ -92,7 +92,10 @@ func main() {
 	if compress {
 		for _, filename := range files {
 			if _, found := skipMap[filename]; !found {
-				imageconvert.CompressJPEG(85, filename)
+				err = imageconvert.CompressJPEG(85, filename)
+				if err != nil {
+					log.Fatalf("error compressing image: %s, error: %s", filename, err.Error())
+				}
 				_, err = processedLog.WriteString(filename + "\n")
 				if err != nil {
 					log.Fatalf("error writing to log file, error: %s", err.Error())
