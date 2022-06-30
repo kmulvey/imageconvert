@@ -1,6 +1,7 @@
 package imageconvert
 
 import (
+	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"regexp"
@@ -9,26 +10,35 @@ import (
 
 // ListFiles lists every file in a directory (recursive) and
 // optionally ignores files given in skipMap
-func ListFiles(root string, skipMap map[string]bool) []string {
+func ListFiles(root string, skipMap map[string]bool) ([]string, error) {
 	var allFiles []string
 	var files, err = ioutil.ReadDir(root)
-	HandleErr("readdir", err)
+	if err != nil {
+		return nil, fmt.Errorf("error listing all files in dir: %s, error: %s", root, err.Error())
+	}
+
 	suffixRegex, err := regexp.Compile(".*.jpg$|.*.jpeg$|.*.png$|.*.webp$")
-	HandleErr("regex", err)
+	if err != nil {
+		return nil, fmt.Errorf("error compiling regex, error: %s", err.Error())
+	}
 
 	for _, file := range files {
 		var fullPath = filepath.Join(root, file.Name())
 		if file.IsDir() {
-			allFiles = append(allFiles, ListFiles(fullPath, skipMap)...)
+			recursiveImages, err := ListFiles(fullPath, skipMap)
+			if err != nil {
+				return nil, fmt.Errorf("error from recursive call to ListFiles, error: %s", err.Error())
+			}
+			allFiles = append(allFiles, recursiveImages...)
 		} else {
-			if _, exists := skipMap[fullPath]; !exists { // we dont process images that have already been processed
+			if _, exists := skipMap[fullPath]; !exists { // we dont add images that have already been processed
 				if suffixRegex.MatchString(strings.ToLower(file.Name())) {
 					allFiles = append(allFiles, fullPath)
 				}
 			}
 		}
 	}
-	return allFiles
+	return allFiles, nil
 }
 
 // FilterPNG filters a slice of files to return only pngs
