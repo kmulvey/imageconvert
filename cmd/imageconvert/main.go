@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"flag"
 	"os"
+	"runtime"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -23,21 +24,31 @@ func main() {
 	var rootDir string
 	var processedLogFile string
 	var compress bool
+	var threads int
 
 	flag.StringVar(&rootDir, "dir", "", "directory (abs path), could also be a single file")
 	flag.StringVar(&processedLogFile, "log-file", "processed.log", "the file to write processes images to, so that we dont processes them again next time")
 	flag.BoolVar(&compress, "compress", false, "compress")
+	flag.IntVar(&threads, "threads", 1, "number of threads to use, >1 only useful when rebuilding the cache")
 	flag.Parse()
 	if strings.TrimSpace(rootDir) == "" {
 		log.Fatal("directory not provided")
+	}
+	if threads <= 0 || threads > runtime.GOMAXPROCS(0) {
+		threads = 1
 	}
 
 	// open the file
 	log.Info("reading log file")
 	var processedLog, err = os.OpenFile(processedLogFile, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0755)
-	imageconvert.HandleErr("processedLog open", err)
+	if err != nil {
+		log.Fatalf("processedLog open, error: %s", err.Error())
+	}
 	defer func() {
-		imageconvert.HandleErr("close processedLog", processedLog.Close())
+		err = processedLog.Close()
+		if err != nil {
+			log.Fatalf("processedLog close: error: %s", err.Error())
+		}
 	}()
 
 	var skipMap = getSkipMap(processedLog)
@@ -56,6 +67,12 @@ func main() {
 		files = imageconvert.ListFiles(rootDir, skipMap)
 	}
 
+	//////////////////////////////
+	var errChan = make(chan error)
+	var conversionCounts = make(chan string)
+	var compressionCounts = make(chan int)
+	//////////////////////////////
+
 	log.Info("converting images to jpeg")
 	var conversionTotals = make(map[string]int)
 	var imageType string
@@ -71,7 +88,9 @@ func main() {
 			if _, found := skipMap[filename]; !found {
 				imageconvert.CompressJPEG(85, filename)
 				_, err = processedLog.WriteString(filename + "\n")
-				imageconvert.HandleErr("write to log", err)
+				if err != nil {
+					log.Fatalf("error writing to log file, error: %s", err.Error())
+				}
 				compressed++
 			}
 		}
