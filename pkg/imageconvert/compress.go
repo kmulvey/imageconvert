@@ -11,21 +11,23 @@ import (
 
 // QualityCheck uses imagemagick to determine the quality of the image
 // and returns true if the quality is above a given threshold
-func QualityCheck(maxQuality int, file string) bool {
-	file = EscapeFilePath(file)
-	cmd := fmt.Sprintf("identify -format %s %s", "'%Q'", file)
+func QualityCheck(maxQuality int, imagePath string) (bool, error) {
+	imagePath = EscapeFilePath(imagePath)
+	cmd := fmt.Sprintf("identify -format %s %s", "'%Q'", imagePath)
 	out, err := exec.Command("bash", "-c", cmd).Output()
 	if err != nil {
-		HandleErr(fmt.Sprintf("Incorect file name %s", file), err)
+		return false, fmt.Errorf("error running identify on image: %s, error: %s, output: %s", imagePath, err.Error(), out)
 	}
 	imageQuality, err := strconv.ParseInt(string(out), 10, 0)
-	HandleErr("parse quality int", err)
+	if err != nil {
+		return false, fmt.Errorf("error parsing int for quality on image: %s, error: %s", imagePath, err.Error())
+	}
 
-	return int64(maxQuality) >= imageQuality
+	return int64(maxQuality) >= imageQuality, nil
 }
 
 // CompressJPEG uses jpegoptim to compress the image
-func CompressJPEG(quality int, imagePath string) {
+func CompressJPEG(quality int, imagePath string) error {
 	// have to escape the file spaces for the exec call
 	var escapedImagePath = EscapeFilePath(imagePath)
 	var cmdStr = fmt.Sprintf("jpegoptim -p -o -m%d %s",
@@ -34,15 +36,12 @@ func CompressJPEG(quality int, imagePath string) {
 
 	output, err := exec.Command("bash", "-c", cmdStr).Output()
 	if err != nil {
-		log.WithFields(log.Fields{
-			"err":        err,
-			"cmd output": string(output),
-			"file":       imagePath,
-		}).Fatal("Compress exec fail")
+		return fmt.Errorf("error running jpegoptim on image: %s, error: %s, output: %s", imagePath, err.Error(), output)
 	}
-	HandleErr("Exec", err)
 
 	if strings.Contains(string(output), "optimized.") {
 		log.Info(string(output))
 	}
+
+	return nil
 }
