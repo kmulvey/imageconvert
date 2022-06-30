@@ -64,20 +64,26 @@ func main() {
 		files[0] = rootDir
 	} else {
 		// these are all the files all the way down the dir tree
-		files = imageconvert.ListFiles(rootDir, skipMap)
+		files, err = imageconvert.ListFiles(rootDir, skipMap)
+		if err != nil {
+			log.Fatalf("error listing files: dir: %s, error: %s", rootDir, err.Error())
+		}
 	}
 
 	//////////////////////////////
-	var errChan = make(chan error)
-	var conversionCounts = make(chan string)
-	var compressionCounts = make(chan int)
+	//var errChan = make(chan error)
+	//var conversionCounts = make(chan string)
+	//var compressionCounts = make(chan int)
 	//////////////////////////////
 
 	log.Info("converting images to jpeg")
 	var conversionTotals = make(map[string]int)
 	var imageType string
 	for i, filename := range files {
-		files[i], imageType = imageconvert.Convert(filename)
+		files[i], imageType, err = imageconvert.Convert(filename)
+		if err != nil {
+			log.Fatalf("error converting image: %s, error: %s", filename, err.Error())
+		}
 		conversionTotals[imageType]++
 	}
 
