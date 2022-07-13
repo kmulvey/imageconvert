@@ -64,10 +64,13 @@ func main() {
 		files[0] = rootDir
 	} else {
 		// these are all the files all the way down the dir tree
-		files, err = imageconvert.ListFiles(rootDir, skipMap)
+		fileInfos, err := imageconvert.ListFiles(rootDir)
 		if err != nil {
 			log.Fatalf("error listing files: dir: %s, error: %s", rootDir, err.Error())
 		}
+
+		fileInfos = imageconvert.FilterFilesBySkipMap(fileInfos, skipMap)
+		files = imageconvert.FileInfoToString(fileInfos)
 	}
 
 	//////////////////////////////

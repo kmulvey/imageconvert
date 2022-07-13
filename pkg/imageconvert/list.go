@@ -6,12 +6,20 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 )
+
+// FileInfo is a copy of fs.FileInfo that
+// allows us to modify the filename
+type FileInfo struct {
+	Name    string
+	ModTime time.Time
+}
 
 // ListFiles lists every file in a directory (recursive) and
 // optionally ignores files given in skipMap
-func ListFiles(root string, skipMap map[string]bool) ([]string, error) {
-	var allFiles []string
+func ListFiles(root string) ([]FileInfo, error) {
+	var allFiles []FileInfo
 	var files, err = ioutil.ReadDir(root)
 	if err != nil {
 		return nil, fmt.Errorf("error listing all files in dir: %s, error: %s", root, err.Error())
@@ -25,20 +33,49 @@ func ListFiles(root string, skipMap map[string]bool) ([]string, error) {
 	for _, file := range files {
 		var fullPath = filepath.Join(root, file.Name())
 		if file.IsDir() {
-			recursiveImages, err := ListFiles(fullPath, skipMap)
+			recursiveImages, err := ListFiles(fullPath)
 			if err != nil {
 				return nil, fmt.Errorf("error from recursive call to ListFiles, error: %s", err.Error())
 			}
 			allFiles = append(allFiles, recursiveImages...)
 		} else {
-			if _, exists := skipMap[fullPath]; !exists { // we dont add images that have already been processed
-				if suffixRegex.MatchString(strings.ToLower(file.Name())) {
-					allFiles = append(allFiles, fullPath)
-				}
+			if suffixRegex.MatchString(strings.ToLower(file.Name())) {
+				allFiles = append(allFiles, FileInfo{Name: fullPath, ModTime: file.ModTime()})
 			}
 		}
 	}
 	return allFiles, nil
+}
+
+// FileInfoToString converts a slice of fs.FileInfo to a slice
+// of just the files names joined with a given root directory
+func FileInfoToString(files []FileInfo) []string {
+	var fileNames = make([]string, len(files))
+	for i, file := range files {
+		fileNames[i] = file.Name
+	}
+	return fileNames
+}
+
+// FilterFilesByDate removes files from the slice if they were modified
+// before the modifiedSince
+func FilterFilesByDate(files []FileInfo, modifiedSince time.Time) []FileInfo {
+	for i := len(files) - 1; i >= 0; i-- {
+		if files[i].ModTime.Before(modifiedSince) {
+			files = remove(files, i)
+		}
+	}
+	return files
+}
+
+// FilterFilesBySkipMap removes files from the map that are also in the skipMap
+func FilterFilesBySkipMap(files []FileInfo, skipMap map[string]bool) []FileInfo {
+	for i := len(files) - 1; i >= 0; i-- {
+		if _, has := skipMap[files[i].Name]; has {
+			files = remove(files, i)
+		}
+	}
+	return files
 }
 
 // FilterPNG filters a slice of files to return only pngs
@@ -89,4 +126,8 @@ func FilerJPEG(files []string) []string {
 func EscapeFilePath(file string) string {
 	var r = strings.NewReplacer(" ", `\ `, "(", `\(`, ")", `\)`, "'", `\'`, "&", `\&`, "@", `\@`)
 	return r.Replace(file)
+}
+
+func remove(slice []FileInfo, s int) []FileInfo {
+	return append(slice[:s], slice[s+1:]...)
 }
