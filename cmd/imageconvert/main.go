@@ -73,62 +73,59 @@ func main() {
 		files = imageconvert.FileInfoToString(fileInfos)
 	}
 
-	//////////////////////////////
-	//var errChan = make(chan error)
-	//var conversionCounts = make(chan string)
-	//var compressionCounts = make(chan int)
-	//////////////////////////////
-
-	log.Info("converting images to jpeg")
+	// spin up goroutines to do the work
+	log.Info("spinning up ", threads, " workers")
 	var conversionTotals = make(map[string]int)
-	var imageType string
-	for i, filename := range files {
-		files[i], imageType, err = imageconvert.Convert(filename)
-		if err != nil {
-			log.Fatalf("error converting image: %s, error: %s", filename, err.Error())
-		}
-		conversionTotals[imageType]++
-	}
-
-	log.Info("compressing jpegs")
-	var compressed int
-	if compress {
-		for _, filename := range files {
-			if _, found := skipMap[filename]; !found {
-				err = imageconvert.CompressJPEG(85, filename)
-				if err != nil {
-					log.Fatalf("error compressing image: %s, error: %s", filename, err.Error())
-				}
-				_, err = processedLog.WriteString(filename + "\n")
-				if err != nil {
-					log.Fatalf("error writing to log file, error: %s", err.Error())
-				}
-				compressed++
-			}
-		}
-	}
-
-	log.Info("rename .jpeg to .jpg")
+	var compressedTotal int
 	var renamedTotal int
-	for _, old := range imageconvert.FilerJPEG(files) {
-		var renamed = strings.ReplaceAll(old, ".jpeg", ".jpg")
+	var fileChan = make(chan string)
+	var resultChans = make([]chan conversionResult, threads)
+	for i := 0; i < threads; i++ {
+		var results = make(chan conversionResult)
+		resultChans[i] = results
+		go conversionWorker(fileChan, results, compress)
+	}
 
-		if imageconvert.WouldOverwrite(old, renamed) {
-			log.Warnf("renaming %s would overwrite an existing jpeg, skipping", old)
-			continue
+	log.Info("beginning ", len(files), " conversions")
+	go func() {
+		for _, file := range files {
+			fileChan <- file
 		}
+		close(fileChan)
+	}()
 
-		err = os.Rename(old, renamed)
-		if err != nil {
-			log.Fatalf("could rename file: %s, err: %s", old, err.Error())
+	// process results of our goroutines, every error is fatal
+	log.Info("waiting for workers to complete")
+	for result := range mergeResults(resultChans...) {
+		if result.Error != nil {
+			log.Fatal(result.Error)
+		} else {
+			conversionTotals[result.ImageType]++
+			if result.Compressed {
+				compressedTotal++
+			}
+			if result.Renamed {
+				renamedTotal++
+			}
+			_, err = processedLog.WriteString(result.ConvertedFileName + "\n")
+			if err != nil {
+				log.Fatalf("error writing to log file, error: %s", err.Error())
+			}
+
+			log.WithFields(log.Fields{
+				"original file name": result.OriginalFileName,
+				"new file name":      result.ConvertedFileName,
+				"type":               result.ImageType,
+				"compressed":         result.Compressed,
+				"renamed":            result.Renamed,
+			}).Info("Converted")
 		}
-		renamedTotal++
 	}
 
 	log.WithFields(log.Fields{
 		"converted pngs":  conversionTotals["png"],
 		"converted webps": conversionTotals["webp"],
-		"compressed":      compressed,
+		"compressed":      compressedTotal,
 		"jpegs renamed":   renamedTotal,
 	}).Info("Done")
 }

@@ -40,7 +40,7 @@ func Convert(from string) (string, string, error) {
 
 	// dont bother converting jpegs
 	if imageType == "jpeg" {
-		return from, "", nil
+		return from, "jpeg", nil
 	}
 
 	// dont convert images that would result in an overwrite
