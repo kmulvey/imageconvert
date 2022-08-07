@@ -2,7 +2,7 @@ package imageconvert
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -20,7 +20,7 @@ type FileInfo struct {
 // optionally ignores files given in skipMap
 func ListFiles(root string) ([]FileInfo, error) {
 	var allFiles []FileInfo
-	var files, err = ioutil.ReadDir(root)
+	var files, err = os.ReadDir(root)
 	if err != nil {
 		return nil, fmt.Errorf("error listing all files in dir: %s, error: %s", root, err.Error())
 	}
@@ -40,7 +40,11 @@ func ListFiles(root string) ([]FileInfo, error) {
 			allFiles = append(allFiles, recursiveImages...)
 		} else {
 			if suffixRegex.MatchString(strings.ToLower(file.Name())) {
-				allFiles = append(allFiles, FileInfo{Name: fullPath, ModTime: file.ModTime()})
+				var info, err = file.Info()
+				if err != nil {
+					return nil, fmt.Errorf("could not get FileInfo for file: %s, error: %s", file.Name(), err.Error())
+				}
+				allFiles = append(allFiles, FileInfo{Name: fullPath, ModTime: info.ModTime()})
 			}
 		}
 	}
