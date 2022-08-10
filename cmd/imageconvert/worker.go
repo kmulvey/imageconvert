@@ -25,6 +25,13 @@ func conversionWorker(files chan string, results chan conversionResult, compress
 			OriginalFileName: file,
 		}
 
+		stat, err := os.Stat(file)
+		if err != nil {
+			result.Error = fmt.Errorf("error stat'ing file: %s, error: %w", file, err)
+			results <- result
+			continue
+		}
+
 		convertedFileName, imageType, err := imageconvert.Convert(file)
 		if err != nil {
 			result.Error = fmt.Errorf("error converting image: %s, error: %w", file, err)
@@ -60,6 +67,15 @@ func conversionWorker(files chan string, results chan conversionResult, compress
 			}
 			result.Renamed = true
 		}
+
+		// reset modtime
+		err = os.Chtimes(result.ConvertedFileName, stat.ModTime(), stat.ModTime())
+		if err != nil {
+			result.Error = fmt.Errorf("could reset mod time of file: %s, err: %w", result.ConvertedFileName, err)
+			results <- result
+			continue
+		}
+
 		results <- result
 	}
 	close(results)
