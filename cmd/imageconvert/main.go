@@ -53,25 +53,14 @@ func main() {
 
 	var skipMap = getSkipMap(processedLog)
 
-	// Did they give us a dir or file?
 	log.Info("building file list")
-	fileInfo, err := os.Stat(rootDir)
+	// these are all the files all the way down the dir tree
+	fileInfos, err := imageconvert.ListAllFiles(rootDir)
 	if err != nil {
-		log.Fatal("could not stat file/dir ", err)
+		log.Fatalf("error listing files: dir: %s, error: %s", rootDir, err.Error())
 	}
-	var files = make([]string, 1) // we will always have at least one
-	if !fileInfo.IsDir() {
-		files[0] = rootDir
-	} else {
-		// these are all the files all the way down the dir tree
-		fileInfos, err := imageconvert.ListFiles(rootDir)
-		if err != nil {
-			log.Fatalf("error listing files: dir: %s, error: %s", rootDir, err.Error())
-		}
-
-		fileInfos = imageconvert.FilterFilesBySkipMap(fileInfos, skipMap)
-		files = imageconvert.FileInfoToString(fileInfos)
-	}
+	fileInfos = imageconvert.FilterFilesBySkipMap(fileInfos, skipMap)
+	var files = imageconvert.FileInfoToString(fileInfos)
 
 	// spin up goroutines to do the work
 	log.Info("spinning up ", threads, " workers")
