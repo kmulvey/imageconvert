@@ -3,13 +3,15 @@ package main
 import (
 	"bufio"
 	"flag"
+	"fmt"
+	"io/fs"
 	"os"
 	"runtime"
-	"strings"
+	"time"
 
+	"github.com/kmulvey/humantime"
+	"github.com/kmulvey/path"
 	log "github.com/sirupsen/logrus"
-
-	"github.com/kmulvey/imageconvert/pkg/imageconvert"
 )
 
 const staticBool = false
@@ -21,25 +23,28 @@ func main() {
 	})
 
 	// get the user options
-	var rootDir string
+	var inputPath path.Path
 	var processedLogFile string
 	var compress bool
 	var threads int
+	var tr humantime.TimeRange
 
-	flag.StringVar(&rootDir, "dir", "", "directory (abs path), could also be a single file")
+	flag.Var(&inputPath, "path", "path to files, globbing must be quoted")
 	flag.StringVar(&processedLogFile, "log-file", "processed.log", "the file to write processes images to, so that we dont processes them again next time")
 	flag.BoolVar(&compress, "compress", false, "compress")
-	flag.IntVar(&threads, "threads", 1, "number of threads to use, >1 only useful when rebuilding the cache")
+	flag.IntVar(&threads, "threads", 1, "number of threads to use")
+	flag.Var(&tr, "modified-since", "process files chnaged since this time")
 	flag.Parse()
-	if strings.TrimSpace(rootDir) == "" {
-		log.Fatal("directory not provided")
+	if len(inputPath.Files) == 0 {
+		log.Fatal("path not provided")
 	}
 	if threads <= 0 || threads > runtime.GOMAXPROCS(0) {
 		threads = 1
+		log.Infof("invalid thread count: %d, setting threads to 1", threads)
 	}
+	log.Infof("Config: dir: %s, log file: %s, conpress: %t, threads: %d, modified-since: %s", inputPath.Input, processedLogFile, compress, threads, tr)
 
-	// open the file
-	log.Info("reading log file")
+	log.Info("reading processed log file")
 	var processedLog, err = os.OpenFile(processedLogFile, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0755)
 	if err != nil {
 		log.Fatalf("processedLog open, error: %s", err.Error())
@@ -47,20 +52,15 @@ func main() {
 	defer func() {
 		err = processedLog.Close()
 		if err != nil {
-			log.Fatalf("processedLog close: error: %s", err.Error())
+			log.Errorf("processedLog close: error: %s", err.Error())
 		}
 	}()
 
-	var skipMap = getSkipMap(processedLog)
-
 	log.Info("building file list")
-	// these are all the files all the way down the dir tree
-	fileInfos, err := imageconvert.ListAllFiles(rootDir)
+	files, err := getFileList(inputPath, tr, processedLog)
 	if err != nil {
-		log.Fatalf("error listing files: dir: %s, error: %s", rootDir, err.Error())
+		log.Fatal(err)
 	}
-	fileInfos = imageconvert.FilterFilesBySkipMap(fileInfos, skipMap)
-	var files = imageconvert.FileInfoToString(fileInfos)
 
 	// spin up goroutines to do the work
 	log.Info("spinning up ", threads, " workers")
@@ -122,15 +122,39 @@ func main() {
 // getSkipMap read the log from the last time this was run and
 // puts those filenames in a map so we dont have to process them again
 // If you want to reprocess, just delete the file
-func getSkipMap(processedImages *os.File) map[string]bool {
+func getSkipMap(processedImages *os.File) map[string]struct{} {
 
 	var scanner = bufio.NewScanner(processedImages)
 	scanner.Split(bufio.ScanLines)
-	var compressedFiles = make(map[string]bool)
+	var compressedFiles = make(map[string]struct{})
 
 	for scanner.Scan() {
-		compressedFiles[scanner.Text()] = staticBool
+		compressedFiles[scanner.Text()] = struct{}{}
 	}
 
 	return compressedFiles
+}
+
+// getFileList
+func getFileList(inputPath path.Path, modSince humantime.TimeRange, processedLog *os.File) ([]string, error) {
+
+	var nilTime = time.Time{}
+	var err error
+	var trimmedFileList []fs.DirEntry
+
+	if modSince.From != nilTime {
+		trimmedFileList, err = path.FilterFilesSinceDate(inputPath.Files, modSince.From)
+		if err != nil {
+			return nil, fmt.Errorf("unable to filter files by skip map")
+		}
+	} else {
+		var skipMap = getSkipMap(processedLog)
+		trimmedFileList, err = path.FilterFilesBySkipMap(inputPath.Files, skipMap)
+		if err != nil {
+			return nil, fmt.Errorf("unable to filter files by skip map")
+		}
+	}
+
+	// these are all the files all the way down the dir tree
+	return path.DirEntryToString(trimmedFileList)
 }
