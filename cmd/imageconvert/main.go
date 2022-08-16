@@ -14,8 +14,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const staticBool = false
-
 func main() {
 	log.SetFormatter(&log.TextFormatter{
 		FullTimestamp:   true,
@@ -49,12 +47,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("processedLog open, error: %s", err.Error())
 	}
-	defer func() {
-		err = processedLog.Close()
-		if err != nil {
-			log.Errorf("processedLog close: error: %s", err.Error())
-		}
-	}()
 
 	log.Info("building file list")
 	files, err := getFileList(inputPath, tr, processedLog)
@@ -117,6 +109,11 @@ func main() {
 		"compressed":      compressedTotal,
 		"jpegs renamed":   renamedTotal,
 	}).Info("Done")
+
+	err = processedLog.Close()
+	if err != nil {
+		log.Fatalf("error closing log file: %s", err.Error())
+	}
 }
 
 // getSkipMap read the log from the last time this was run and

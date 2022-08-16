@@ -16,6 +16,8 @@ type testPair struct {
 }
 
 func TestCompress(t *testing.T) {
+	t.Parallel()
+
 	for _, image := range []testPair{{"testimages/test.png", "png"}, {"testimages/test.webp", "webp"}} {
 
 		// copy test image into this dir

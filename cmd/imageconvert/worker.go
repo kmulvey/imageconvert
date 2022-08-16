@@ -13,9 +13,9 @@ type conversionResult struct {
 	OriginalFileName  string
 	ConvertedFileName string
 	ImageType         string
+	Error             error
 	Compressed        bool
 	Renamed           bool
-	Error             error
 }
 
 func conversionWorker(files chan string, results chan conversionResult, compress bool) {

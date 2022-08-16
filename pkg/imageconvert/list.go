@@ -13,18 +13,15 @@ import (
 // FileInfo is a copy of fs.FileInfo that
 // allows us to modify the filename
 type FileInfo struct {
-	Name    string
 	ModTime time.Time
+	Name    string
 }
 
-// ListAllFiles un-globs input as well as recursivly list all
+// ListAllFiles un-globs input as well as recursively list all
 // files in the given input
 func ListAllFiles(inputPath string) ([]FileInfo, error) {
 	var allFiles []FileInfo
-	var suffixRegex, err = regexp.Compile(".*.jpg$|.*.jpeg$|.*.png$|.*.webp$")
-	if err != nil {
-		return nil, fmt.Errorf("error compiling regex, error: %s", err.Error())
-	}
+	var suffixRegex = regexp.MustCompile(".*.jpg$|.*.jpeg$|.*.png$|.*.webp$")
 
 	// expand ~ paths
 	if strings.Contains(inputPath, "~") {
@@ -54,10 +51,8 @@ func ListAllFiles(inputPath string) ([]FileInfo, error) {
 				return nil, fmt.Errorf("could not list files in dir: %s, err: %w", file, err)
 			}
 			allFiles = append(allFiles, dirFiles...)
-		} else {
-			if suffixRegex.MatchString(strings.ToLower(file)) {
-				allFiles = append(allFiles, FileInfo{Name: file, ModTime: stat.ModTime()})
-			}
+		} else if suffixRegex.MatchString(strings.ToLower(file)) {
+			allFiles = append(allFiles, FileInfo{Name: file, ModTime: stat.ModTime()})
 		}
 	}
 
@@ -73,10 +68,7 @@ func ListDirFiles(root string) ([]FileInfo, error) {
 		return nil, fmt.Errorf("error listing all files in dir: %s, error: %s", root, err.Error())
 	}
 
-	suffixRegex, err := regexp.Compile(".*.jpg$|.*.jpeg$|.*.png$|.*.webp$")
-	if err != nil {
-		return nil, fmt.Errorf("error compiling regex, error: %s", err.Error())
-	}
+	var suffixRegex = regexp.MustCompile(".*.jpg$|.*.jpeg$|.*.png$|.*.webp$")
 
 	for _, file := range files {
 		var fullPath = filepath.Join(root, file.Name())
@@ -86,14 +78,12 @@ func ListDirFiles(root string) ([]FileInfo, error) {
 				return nil, fmt.Errorf("error from recursive call to ListFiles, error: %s", err.Error())
 			}
 			allFiles = append(allFiles, recursiveImages...)
-		} else {
-			if suffixRegex.MatchString(strings.ToLower(file.Name())) {
-				var info, err = file.Info()
-				if err != nil {
-					return nil, fmt.Errorf("could not get FileInfo for file: %s, error: %s", file.Name(), err.Error())
-				}
-				allFiles = append(allFiles, FileInfo{Name: fullPath, ModTime: info.ModTime()})
+		} else if suffixRegex.MatchString(strings.ToLower(file.Name())) {
+			var info, err = file.Info()
+			if err != nil {
+				return nil, fmt.Errorf("could not get FileInfo for file: %s, error: %s", file.Name(), err.Error())
 			}
+			allFiles = append(allFiles, FileInfo{Name: fullPath, ModTime: info.ModTime()})
 		}
 	}
 	return allFiles, nil
