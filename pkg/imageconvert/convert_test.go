@@ -7,7 +7,7 @@ import (
 	"path"
 	"testing"
 
-	"github.com/tj/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 type testPair struct {
