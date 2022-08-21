@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"io/fs"
 	"os"
 	"runtime"
 	"time"
@@ -137,7 +136,7 @@ func getFileList(inputPath path.Path, modSince humantime.TimeRange, processedLog
 
 	var nilTime = time.Time{}
 	var err error
-	var trimmedFileList []fs.DirEntry
+	var trimmedFileList []path.File
 
 	if modSince.From != nilTime {
 		trimmedFileList, err = path.FilterFilesSinceDate(inputPath.Files, modSince.From)
