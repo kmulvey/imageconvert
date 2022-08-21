@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/kmulvey/humantime v0.4.1
-	github.com/kmulvey/path v0.4.1
+	github.com/kmulvey/path v0.4.2
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.0
 	golang.org/x/image v0.0.0-20220722155232-062f8c9fd539
