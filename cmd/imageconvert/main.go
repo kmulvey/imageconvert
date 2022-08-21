@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"regexp"
 	"runtime"
 	"time"
 
@@ -145,12 +146,14 @@ func getFileList(inputPath path.Path, modSince humantime.TimeRange, processedLog
 		}
 	} else {
 		var skipMap = getSkipMap(processedLog)
-		trimmedFileList, err = path.FilterFilesBySkipMap(inputPath.Files, skipMap)
+		trimmedFileList = path.FilterFilesBySkipMap(inputPath.Files, skipMap)
 		if err != nil {
 			return nil, fmt.Errorf("unable to filter files by skip map")
 		}
 	}
 
+	trimmedFileList = path.FilterFilesByRegex(trimmedFileList, regexp.MustCompile(".*.jpg$|.*.jpeg$|.*.png$|.*.webp$"))
+
 	// these are all the files all the way down the dir tree
-	return path.DirEntryToString(trimmedFileList)
+	return path.DirEntryToString(trimmedFileList), nil
 }
