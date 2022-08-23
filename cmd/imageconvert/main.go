@@ -147,11 +147,7 @@ func getFileList(inputPath path.Path, modSince humantime.TimeRange, processedLog
 			return nil, fmt.Errorf("unable to filter files by skip map")
 		}
 	} else {
-		var skipMap = getSkipMap(processedLog)
-		trimmedFileList = path.FilterFilesBySkipMap(inputPath.Files, skipMap)
-		if err != nil {
-			return nil, fmt.Errorf("unable to filter files by skip map")
-		}
+		trimmedFileList = path.FilterFilesBySkipMap(inputPath.Files, getSkipMap(processedLog))
 	}
 
 	trimmedFileList = path.FilterFilesByRegex(trimmedFileList, regexp.MustCompile(".*.jpg$|.*.jpeg$|.*.png$|.*.webp$"))
