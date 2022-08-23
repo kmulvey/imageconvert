@@ -34,13 +34,15 @@ func main() {
 	flag.Var(&tr, "modified-since", "process files chnaged since this time")
 	flag.Parse()
 	if len(inputPath.Files) == 0 {
-		log.Fatal("path not provided")
+		log.Error("path not provided")
+		flag.PrintDefaults()
+		return
 	}
 	if threads <= 0 || threads > runtime.GOMAXPROCS(0) {
 		threads = 1
 		log.Infof("invalid thread count: %d, setting threads to 1", threads)
 	}
-	log.Infof("Config: dir: %s, log file: %s, conpress: %t, threads: %d, modified-since: %s", inputPath.Input, processedLogFile, compress, threads, tr)
+	log.Infof("Config: dir: %s, log file: %s, compress: %t, threads: %d, modified-since: %s", inputPath.Input, processedLogFile, compress, threads, tr)
 
 	log.Info("reading processed log file")
 	var processedLog, err = os.OpenFile(processedLogFile, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0755)
@@ -132,7 +134,7 @@ func getSkipMap(processedImages *os.File) map[string]struct{} {
 	return compressedFiles
 }
 
-// getFileList
+// getFileList filters the file list
 func getFileList(inputPath path.Path, modSince humantime.TimeRange, processedLog *os.File) ([]string, error) {
 
 	var nilTime = time.Time{}
