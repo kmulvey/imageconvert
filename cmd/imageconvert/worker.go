@@ -66,6 +66,7 @@ func conversionWorker(files chan string, results chan conversionResult, compress
 				continue
 			}
 			result.Renamed = true
+			result.ConvertedFileName = renamed
 		}
 
 		// reset modtime

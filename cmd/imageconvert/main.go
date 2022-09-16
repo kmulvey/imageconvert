@@ -81,7 +81,7 @@ func main() {
 	log.Info("waiting for workers to complete")
 	for result := range mergeResults(resultChans...) {
 		if result.Error != nil {
-			log.Fatal(result.Error)
+			log.Error(result.Error)
 		} else {
 			conversionTotals[result.ImageType]++
 			if result.Compressed {
