@@ -12,6 +12,8 @@ import (
 	"github.com/kmulvey/humantime"
 	"github.com/kmulvey/path"
 	log "github.com/sirupsen/logrus"
+	"go.szostok.io/version"
+	"go.szostok.io/version/printer"
 )
 
 func main() {
@@ -25,6 +27,7 @@ func main() {
 	var processedLogFile string
 	var compress bool
 	var threads int
+	var v bool
 	var tr humantime.TimeRange
 
 	flag.Var(&inputPath, "path", "path to files, globbing must be quoted")
@@ -32,7 +35,18 @@ func main() {
 	flag.BoolVar(&compress, "compress", false, "compress")
 	flag.IntVar(&threads, "threads", 1, "number of threads to use")
 	flag.Var(&tr, "modified-since", "process files chnaged since this time")
+	flag.BoolVar(&v, "version", false, "print version")
+	flag.BoolVar(&v, "v", false, "print version")
 	flag.Parse()
+
+	if v {
+		var verPrinter = printer.New()
+		var info = version.Get()
+		if err := verPrinter.PrintInfo(os.Stdout, info); err != nil {
+			log.Fatal(err)
+		}
+		os.Exit(0)
+	}
 	if len(inputPath.Files) == 0 {
 		log.Error("path not provided")
 		flag.PrintDefaults()
