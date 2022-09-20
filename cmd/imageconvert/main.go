@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"flag"
-	"fmt"
 	"os"
 	"regexp"
 	"runtime"
@@ -152,14 +151,10 @@ func getSkipMap(processedImages *os.File) map[string]struct{} {
 func getFileList(inputPath path.Path, modSince humantime.TimeRange, processedLog *os.File) ([]string, error) {
 
 	var nilTime = time.Time{}
-	var err error
-	var trimmedFileList []path.File
+	var trimmedFileList []path.Entry
 
 	if modSince.From != nilTime {
-		trimmedFileList, err = path.FilterFilesByDateRange(inputPath.Files, modSince.From, modSince.To)
-		if err != nil {
-			return nil, fmt.Errorf("unable to filter files by skip map")
-		}
+		trimmedFileList = path.FilterFilesByDateRange(inputPath.Files, modSince.From, modSince.To)
 	} else {
 		trimmedFileList = path.FilterFilesBySkipMap(inputPath.Files, getSkipMap(processedLog))
 	}
@@ -167,5 +162,5 @@ func getFileList(inputPath path.Path, modSince humantime.TimeRange, processedLog
 	trimmedFileList = path.FilterFilesByRegex(trimmedFileList, regexp.MustCompile(".*.jpg$|.*.jpeg$|.*.png$|.*.webp$"))
 
 	// these are all the files all the way down the dir tree
-	return path.DirEntryToString(trimmedFileList), nil
+	return path.OnlyNames(trimmedFileList), nil
 }
