@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/kmulvey/humantime v0.4.2
-	github.com/kmulvey/path v0.7.1
+	github.com/kmulvey/path v0.8.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.0
 	go.szostok.io/version v1.0.0
