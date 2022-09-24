@@ -34,6 +34,8 @@ github.com/kmulvey/humantime v0.4.2 h1:UA6mvfkKybNpCwG2h7xIooESzyLWqf9zsoDxUSnYU
 github.com/kmulvey/humantime v0.4.2/go.mod h1:iQiJH8ULb3NaSHcwrLTHlT0S3+/UDbPDnC6fXTTtznI=
 github.com/kmulvey/path v0.7.1 h1:KgKqDYH4+96y4oT5Bpqak1ZmYSf9s4tpe3RK4Zvm6SA=
 github.com/kmulvey/path v0.7.1/go.mod h1:i2I12ZB9enQFA0m+W0dm4xjYzIhQXGXIlLGFHFwTvlI=
+github.com/kmulvey/path v0.8.0 h1:WfgaUv+7eR9umQ9wRuHYEXz0iCgJK5SEp81qdCEeZ/s=
+github.com/kmulvey/path v0.8.0/go.mod h1:i2I12ZB9enQFA0m+W0dm4xjYzIhQXGXIlLGFHFwTvlI=
 github.com/kr/pretty v0.3.0 h1:WgNl7dwNpEZ6jJ9k1snq4pZsg7DOEN8hP9Xw0Tsjwk0=
 github.com/kr/text v0.2.0 h1:5Nx0Ya0ZqY2ygV366QzturHI13Jq95ApcVaJBhpS+AY=
 github.com/lucasb-eyer/go-colorful v1.2.0 h1:1nnpGOrhyZZuNyfu1QjKiUICQ74+3FNCN69Aj6K7nkY=
