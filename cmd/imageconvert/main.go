@@ -27,6 +27,7 @@ func main() {
 	var compress bool
 	var threads int
 	var v bool
+	var h bool
 	var tr humantime.TimeRange
 
 	flag.Var(&inputPath, "path", "path to files, globbing must be quoted")
@@ -36,7 +37,14 @@ func main() {
 	flag.Var(&tr, "modified-since", "process files chnaged since this time")
 	flag.BoolVar(&v, "version", false, "print version")
 	flag.BoolVar(&v, "v", false, "print version")
+	flag.BoolVar(&v, "h", false, "print options")
+	flag.BoolVar(&v, "help", false, "print options")
 	flag.Parse()
+
+	if h {
+		flag.PrintDefaults()
+		os.Exit(0)
+	}
 
 	if v {
 		var verPrinter = printer.New()
