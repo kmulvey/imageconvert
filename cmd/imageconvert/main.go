@@ -72,10 +72,7 @@ func main() {
 	}
 
 	log.Info("building file list")
-	files, err := getFileList(inputPath, tr, processedLog)
-	if err != nil {
-		log.Fatal(err)
-	}
+	var files = getFileList(inputPath, tr, processedLog)
 
 	// spin up goroutines to do the work
 	log.Info("spinning up ", threads, " workers")
@@ -156,7 +153,7 @@ func getSkipMap(processedImages *os.File) map[string]struct{} {
 }
 
 // getFileList filters the file list
-func getFileList(inputPath path.Path, modSince humantime.TimeRange, processedLog *os.File) ([]string, error) {
+func getFileList(inputPath path.Path, modSince humantime.TimeRange, processedLog *os.File) []string {
 
 	var nilTime = time.Time{}
 	var trimmedFileList []path.Entry
@@ -170,5 +167,5 @@ func getFileList(inputPath path.Path, modSince humantime.TimeRange, processedLog
 	trimmedFileList = path.FilterFilesByRegex(trimmedFileList, regexp.MustCompile(".*.jpg$|.*.jpeg$|.*.png$|.*.webp$"))
 
 	// these are all the files all the way down the dir tree
-	return path.OnlyNames(trimmedFileList), nil
+	return path.OnlyNames(trimmedFileList)
 }
