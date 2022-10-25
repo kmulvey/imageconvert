@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/kmulvey/humantime v0.4.2
-	github.com/kmulvey/path v0.8.0
+	github.com/kmulvey/path v0.9.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.0
 	go.szostok.io/version v1.1.0
@@ -26,7 +26,7 @@ require (
 	github.com/hokaccha/go-prettyjson v0.0.0-20211117102719-0474bc63780f // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
-	github.com/kmulvey/goutils v0.3.1 // indirect
+	github.com/kmulvey/goutils v0.6.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
