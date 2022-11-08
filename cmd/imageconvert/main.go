@@ -25,6 +25,7 @@ func main() {
 	var inputPath path.Path
 	var processedLogFile string
 	var compress bool
+	var force bool
 	var threads int
 	var v bool
 	var h bool
@@ -33,11 +34,11 @@ func main() {
 	flag.Var(&inputPath, "path", "path to files, globbing must be quoted")
 	flag.StringVar(&processedLogFile, "log-file", "processed.log", "the file to write processes images to, so that we dont processes them again next time")
 	flag.BoolVar(&compress, "compress", false, "compress")
+	flag.BoolVar(&force, "force", false, "force")
 	flag.IntVar(&threads, "threads", 1, "number of threads to use")
 	flag.Var(&tr, "modified-since", "process files chnaged since this time")
 	flag.BoolVar(&v, "version", false, "print version")
 	flag.BoolVar(&v, "v", false, "print version")
-	flag.BoolVar(&v, "h", false, "print options")
 	flag.BoolVar(&v, "help", false, "print options")
 	flag.Parse()
 
@@ -72,7 +73,7 @@ func main() {
 	}
 
 	log.Info("building file list")
-	var files = getFileList(inputPath, tr, processedLog)
+	var files = getFileList(inputPath, tr, force, processedLog)
 
 	// spin up goroutines to do the work
 	log.Info("spinning up ", threads, " workers")
@@ -153,14 +154,16 @@ func getSkipMap(processedImages *os.File) map[string]struct{} {
 }
 
 // getFileList filters the file list
-func getFileList(inputPath path.Path, modSince humantime.TimeRange, processedLog *os.File) []string {
+func getFileList(inputPath path.Path, modSince humantime.TimeRange, force bool, processedLog *os.File) []string {
 
 	var nilTime = time.Time{}
 	var trimmedFileList []path.Entry
 
-	if modSince.From != nilTime {
+	if force {
+		trimmedFileList = inputPath.Files
+	} else if modSince.From != nilTime {
 		trimmedFileList = path.FilterFilesByDateRange(inputPath.Files, modSince.From, modSince.To)
-	} else {
+	} else if !force {
 		trimmedFileList = path.FilterFilesBySkipMap(inputPath.Files, getSkipMap(processedLog))
 	}
 
