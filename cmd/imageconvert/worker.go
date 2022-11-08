@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/kmulvey/imageconvert/pkg/imageconvert"
@@ -51,22 +52,27 @@ func conversionWorker(files chan string, results chan conversionResult, compress
 			result.Compressed = converted
 		}
 
+		var fileExt = strings.ReplaceAll(filepath.Ext(result.ConvertedFileName), ".", "")
 		if strings.HasSuffix(convertedFileName, ".jpeg") {
-			var renamed = strings.ReplaceAll(convertedFileName, ".jpeg", ".jpg")
-
-			if imageconvert.WouldOverwrite(convertedFileName, renamed) {
-				log.Warnf("renaming %s would overwrite an existing jpeg, skipping", convertedFileName)
-				continue
-			}
-
-			err = os.Rename(convertedFileName, renamed)
+			renamed, err := rename(convertedFileName, ".jpeg", ".jpg")
 			if err != nil {
-				result.Error = fmt.Errorf("could rename file: %s, err: %w", convertedFileName, err)
 				results <- result
 				continue
 			}
-			result.Renamed = true
-			result.ConvertedFileName = renamed
+			if renamed != "" {
+				result.Renamed = true
+				result.ConvertedFileName = renamed
+			}
+		} else if result.ImageType != fileExt && fileExt != "jpg" {
+			renamed, err := rename(convertedFileName, filepath.Ext(result.ConvertedFileName), ".jpg")
+			if err != nil {
+				results <- result
+				continue
+			}
+			if renamed != "" {
+				result.Renamed = true
+				result.ConvertedFileName = renamed
+			}
 		}
 
 		// reset modtime
@@ -80,4 +86,18 @@ func conversionWorker(files chan string, results chan conversionResult, compress
 		results <- result
 	}
 	close(results)
+}
+
+func rename(convertedFileName, from, to string) (string, error) {
+	var renamed = strings.ReplaceAll(convertedFileName, from, to)
+	if imageconvert.WouldOverwrite(convertedFileName, renamed) {
+		log.Warnf("renaming %s would overwrite an existing jpeg, skipping", convertedFileName)
+	}
+
+	var err = os.Rename(convertedFileName, renamed)
+	if err != nil {
+		return "", fmt.Errorf("could rename file: %s, err: %w", convertedFileName, err)
+	}
+
+	return renamed, nil
 }
