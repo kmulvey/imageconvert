@@ -159,11 +159,12 @@ func getFileList(inputPath path.Path, modSince humantime.TimeRange, force bool, 
 	var nilTime = time.Time{}
 	var trimmedFileList []path.Entry
 
-	if force {
+	switch {
+	case force:
 		trimmedFileList = inputPath.Files
-	} else if modSince.From != nilTime {
+	case modSince.From != nilTime:
 		trimmedFileList = path.FilterFilesByDateRange(inputPath.Files, modSince.From, modSince.To)
-	} else if !force {
+	default:
 		trimmedFileList = path.FilterFilesBySkipMap(inputPath.Files, getSkipMap(processedLog))
 	}
 
