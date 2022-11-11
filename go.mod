@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/kmulvey/humantime v0.4.3
-	github.com/kmulvey/path v0.9.0
+	github.com/kmulvey/path v0.11.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.1
 	go.szostok.io/version v1.1.0
@@ -18,6 +18,7 @@ require (
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de // indirect
 	github.com/aymanbagabas/go-osc52 v1.2.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/deckarep/golang-set/v2 v2.1.0 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/goccy/go-yaml v1.9.6 // indirect
