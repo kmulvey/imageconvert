@@ -65,7 +65,7 @@ func main() {
 		threads = 1
 		log.Infof("invalid thread count: %d, setting threads to 1", threads)
 	}
-	log.Infof("Config: dir: %s, log file: %s, compress: %t, threads: %d, modified-since: %s", inputPath.Input, processedLogFile, compress, threads, tr)
+	log.Infof("Config: dir: %s, log file: %s, compress: %t, threads: %d, modified-since: %s", inputPath.ComputedPath.AbsolutePath, processedLogFile, compress, threads, tr)
 
 	log.Info("reading processed log file")
 	var processedLog, err = os.OpenFile(processedLogFile, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0755)
