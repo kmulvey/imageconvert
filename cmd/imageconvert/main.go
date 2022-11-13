@@ -55,8 +55,9 @@ func main() {
 		}
 		os.Exit(0)
 	}
+
 	if len(inputPath.Files) == 0 {
-		log.Error("path not provided")
+		log.Error("input path does not have any files")
 		flag.PrintDefaults()
 		return
 	}

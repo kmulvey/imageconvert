@@ -50,7 +50,7 @@ func Convert(from string) (string, string, error) {
 	// a "fake jpg" is an image that has the extension .jpg or .jpeg but is
 	// really a different format e.g. png image named "x.jpg"
 	// basically we cant just trust file extensions
-	if WouldOverwrite(from, imageType) {
+	if WouldOverwrite(from) {
 		// we only warn if the detected image format has the corresponding extension
 		if "."+imageType == ext {
 			log.Warnf("converting %s would overwrite an existing jpeg, skipping", from)
@@ -88,7 +88,7 @@ func Convert(from string) (string, string, error) {
 
 // WouldOverwrite looks to see if the file were to be converted to a jpeg,
 // would it overwite an existing jpg file with the same name
-func WouldOverwrite(path, imageType string) bool {
+func WouldOverwrite(path string) bool {
 	var ext = filepath.Ext(path)
 	var jpgPath = strings.Replace(path, ext, ".jpg", 1)
 

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/kmulvey/imageconvert/pkg/imageconvert"
 	log "github.com/sirupsen/logrus"
@@ -19,31 +18,49 @@ type conversionResult struct {
 	Renamed           bool
 }
 
+// conversionWorker reads from the file chan and does all the conversion work.
+// 1. does a file already exist with the output name? yes = skip
+// 2. convert it to jpg
+// 3. compress it (if enabled)
+// 4. reset the mod time
 func conversionWorker(files chan string, results chan conversionResult, compress bool) {
+	defer close(results)
 
 	for file := range files {
 		var result = conversionResult{
 			OriginalFileName: file,
 		}
 
-		stat, err := os.Stat(file)
+		var originalFileStat, err = os.Stat(file)
 		if err != nil {
 			result.Error = fmt.Errorf("error stat'ing file: %s, error: %w", file, err)
 			results <- result
 			continue
 		}
 
-		convertedFileName, imageType, err := imageconvert.Convert(file)
-		if err != nil {
-			result.Error = fmt.Errorf("error converting image: %s, error: %w", file, err)
-			results <- result
-			continue
-		}
-		result.ImageType = imageType
-		result.ConvertedFileName = convertedFileName
+		// if a file already exists with the output name, we skip it as not to overwrite it
+		if imageconvert.WouldOverwrite(file) {
+			result.ConvertedFileName = file
+			if filepath.Ext(file) != ".jpg" && filepath.Ext(file) != ".jpeg" { // if its a jpg we can still compress it
+				log.Warnf("renaming %s will overwrite an existing jpeg, skipping", file)
+				continue
+			}
+		} else {
 
+			// CONVERT IT
+			var imageType string
+			result.ConvertedFileName, imageType, err = imageconvert.Convert(file)
+			if err != nil {
+				result.Error = fmt.Errorf("error converting image: %s, error: %w", file, err)
+				results <- result
+				continue
+			}
+			result.ImageType = imageType
+		}
+
+		// COMPRESS IT
 		if compress {
-			converted, err := imageconvert.CompressJPEG(85, convertedFileName)
+			converted, err := imageconvert.CompressJPEG(85, result.ConvertedFileName)
 			if err != nil {
 				result.Error = fmt.Errorf("error compressing image: %s, error: %w", file, err)
 				results <- result
@@ -52,52 +69,14 @@ func conversionWorker(files chan string, results chan conversionResult, compress
 			result.Compressed = converted
 		}
 
-		var fileExt = strings.ReplaceAll(filepath.Ext(result.ConvertedFileName), ".", "")
-		if strings.HasSuffix(convertedFileName, ".jpeg") {
-			renamed, err := rename(convertedFileName, ".jpeg", ".jpg")
-			if err != nil {
-				results <- result
-				continue
-			}
-			if renamed != "" {
-				result.Renamed = true
-				result.ConvertedFileName = renamed
-			}
-		} else if result.ImageType != fileExt && fileExt != "jpg" {
-			renamed, err := rename(convertedFileName, filepath.Ext(result.ConvertedFileName), ".jpg")
-			if err != nil {
-				results <- result
-				continue
-			}
-			if renamed != "" {
-				result.Renamed = true
-				result.ConvertedFileName = renamed
-			}
-		}
-
-		// reset modtime
-		err = os.Chtimes(result.ConvertedFileName, stat.ModTime(), stat.ModTime())
+		// RESET MODTIME
+		err = os.Chtimes(result.ConvertedFileName, originalFileStat.ModTime(), originalFileStat.ModTime())
 		if err != nil {
-			result.Error = fmt.Errorf("could reset mod time of file: %s, err: %w", result.ConvertedFileName, err)
+			result.Error = fmt.Errorf("could not reset mod time of file: %s, err: %w", result.ConvertedFileName, err)
 			results <- result
 			continue
 		}
 
 		results <- result
 	}
-	close(results)
-}
-
-func rename(convertedFileName, from, to string) (string, error) {
-	var renamed = strings.ReplaceAll(convertedFileName, from, to)
-	if imageconvert.WouldOverwrite(convertedFileName, renamed) {
-		log.Warnf("renaming %s would overwrite an existing jpeg, skipping", convertedFileName)
-	}
-
-	var err = os.Rename(convertedFileName, renamed)
-	if err != nil {
-		return "", fmt.Errorf("could rename file: %s, err: %w", convertedFileName, err)
-	}
-
-	return renamed, nil
 }
