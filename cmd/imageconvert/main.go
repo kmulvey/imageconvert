@@ -39,7 +39,7 @@ func main() {
 	flag.Var(&tr, "modified-since", "process files chnaged since this time")
 	flag.BoolVar(&v, "version", false, "print version")
 	flag.BoolVar(&v, "v", false, "print version")
-	flag.BoolVar(&v, "help", false, "print options")
+	flag.BoolVar(&h, "help", false, "print options")
 	flag.Parse()
 
 	if h {
