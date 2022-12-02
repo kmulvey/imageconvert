@@ -56,6 +56,10 @@ func conversionWorker(files chan string, results chan conversionResult, compress
 				continue
 			}
 			result.ImageType = imageType
+			log.WithFields(log.Fields{
+				"from": file,
+				"to":   result.ConvertedFileName,
+			}).Info("Converted")
 		}
 
 		// COMPRESS IT
