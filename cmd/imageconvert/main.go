@@ -97,7 +97,7 @@ func main() {
 		close(fileChan)
 	}()
 
-	// process results of our goroutines, every error is fatal
+	// process results of our goroutines
 	log.Info("waiting for workers to complete")
 	for result := range mergeResults(resultChans...) {
 		if result.Error != nil {
