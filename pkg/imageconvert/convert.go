@@ -10,8 +10,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	log "github.com/sirupsen/logrus"
-
 	_ "golang.org/x/image/webp"
 )
 
@@ -44,19 +42,13 @@ func Convert(inputFile string) (string, string, error) {
 		return inputFile, "jpeg", nil
 	}
 
-	// dont convert images that would result in an overwrite
-	// e.g. a.png a.jpg exist, thus converting a.png would overwrite a.jpg,
-	// so we let the user handle it
+	// Dont convert images that would result in an overwrite
+	// e.g. a.png a.jpg exist, thus converting a.png would overwrite a.jpg, so we let the user handle it.
 	// EXCEPT fake jpgs:
-	// a "fake jpg" is an image that has the extension .jpg or .jpeg but is
-	// really a different format e.g. png image named "x.jpg"
-	// basically we cant just trust file extensions
+	// A "fake jpeg" is an image that has the extension .jpg or .jpeg but is really a different format e.g. png image named "x.jpg".
+	// Basically dont trust file extensions.
 	if WouldOverwrite(inputFile) {
-		// we only warn if the detected image format has the corresponding extension
-		if "."+imageType == ext {
-			log.Warnf("converting %s would overwrite an existing jpeg, skipping", inputFile)
-			return inputFile, "", nil
-		}
+		return inputFile, "", fmt.Errorf("converting %s would overwrite an existing jpeg, skipping", inputFile)
 	}
 
 	out, err := os.Create(convertedFile)
