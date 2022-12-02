@@ -64,13 +64,17 @@ func conversionWorker(files chan string, results chan conversionResult, compress
 
 		// COMPRESS IT
 		if compress {
-			converted, err := imageconvert.CompressJPEG(85, result.ConvertedFileName)
+			compressed, stdout, err := imageconvert.CompressJPEG(85, result.ConvertedFileName)
 			if err != nil {
 				result.Error = fmt.Errorf("error compressing image: %s, error: %w", file, err)
 				results <- result
 				continue
 			}
-			result.Compressed = converted
+			result.Compressed = compressed
+
+			if compressed {
+				log.Info(stdout)
+			}
 		}
 
 		// RESET MODTIME
