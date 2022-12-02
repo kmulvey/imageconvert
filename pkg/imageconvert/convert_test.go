@@ -15,7 +15,23 @@ type testPair struct {
 	Type string
 }
 
-func TestCompress(t *testing.T) {
+func TestConvertErrors(t *testing.T) {
+	t.Parallel()
+
+	var convertedImage, format, err = Convert("testImage")
+	assert.Equal(t, "", convertedImage)
+	assert.Equal(t, "", format)
+	assert.Equal(t, "error opening file for conversion, image: testImage, error: open testImage: no such file or directory", err.Error())
+
+	assert.NoError(t, os.WriteFile("testImage", make([]byte, 100), os.ModePerm))
+	convertedImage, format, err = Convert("testImage")
+	assert.Equal(t, "", convertedImage)
+	assert.Equal(t, "", format)
+	assert.Equal(t, "error decoding image: testImage, error: image: unknown format", err.Error())
+	assert.NoError(t, os.RemoveAll("testImage"))
+}
+
+func TestConvert(t *testing.T) {
 	t.Parallel()
 
 	for _, image := range []testPair{{"testimages/test.png", "png"}, {"testimages/test.webp", "webp"}} {
