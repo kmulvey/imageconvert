@@ -20,27 +20,28 @@ import (
 // _ "image/png"
 // "image/jpeg"
 
-// Convert converts pngs and webps to jpeg
-// this first string returned is the name of the new file
-// the second string returned is the type of the input image (png, webp), as detected from its encoding, not file name
-func Convert(from string) (string, string, error) {
-	var origFile, err = os.Open(from)
+// Convert converts pngs and webps to jpeg, if successful the inputFile is deleted.
+// This first string returned is the name of the new file.
+// The second string returned is the type of the input image (png, webp), as detected from its encoding, not file name.
+func Convert(inputFile string) (string, string, error) {
+
+	var ext = filepath.Ext(inputFile)
+	var convertedFile = strings.Replace(inputFile, ext, ".jpg", 1)
+
+	var origFile, err = os.Open(inputFile)
 	if err != nil {
-		return "", "", fmt.Errorf("error opening file for conversion, image: %s, error: %s", from, err.Error())
+		return "", "", fmt.Errorf("error opening file for conversion, image: %s, error: %s", inputFile, err.Error())
 	}
 	defer origFile.Close()
 
-	var ext = filepath.Ext(from)
-	var newFile = strings.Replace(from, ext, ".jpg", 1)
-
 	imgData, imageType, err := image.Decode(origFile)
 	if err != nil {
-		return "", "", fmt.Errorf("error decoding image: %s, error: %s", from, err.Error())
+		return "", "", fmt.Errorf("error decoding image: %s, error: %s", inputFile, err.Error())
 	}
 
 	// dont bother converting jpegs
 	if imageType == "jpeg" {
-		return from, "jpeg", nil
+		return inputFile, "jpeg", nil
 	}
 
 	// dont convert images that would result in an overwrite
@@ -50,40 +51,35 @@ func Convert(from string) (string, string, error) {
 	// a "fake jpg" is an image that has the extension .jpg or .jpeg but is
 	// really a different format e.g. png image named "x.jpg"
 	// basically we cant just trust file extensions
-	if WouldOverwrite(from) {
+	if WouldOverwrite(inputFile) {
 		// we only warn if the detected image format has the corresponding extension
 		if "."+imageType == ext {
-			log.Warnf("converting %s would overwrite an existing jpeg, skipping", from)
-			return from, "", nil
+			log.Warnf("converting %s would overwrite an existing jpeg, skipping", inputFile)
+			return inputFile, "", nil
 		}
 	}
 
-	err = os.Remove(from)
+	out, err := os.Create(convertedFile)
 	if err != nil {
-		return "", "", fmt.Errorf("error removing image: %s, error: %s", from, err.Error())
-	}
-
-	out, err := os.Create(newFile)
-	if err != nil {
-		return "", "", fmt.Errorf("error creating new image: %s, error: %s", from, err.Error())
+		return "", "", fmt.Errorf("error creating new image: %s, error: %s", inputFile, err.Error())
 	}
 
 	err = jpeg.Encode(out, imgData, &jpeg.Options{Quality: 85})
 	if err != nil {
-		return "", "", fmt.Errorf("error encoding new image: %s, error: %s", from, err.Error())
+		return "", "", fmt.Errorf("error encoding new image: %s, error: %s", inputFile, err.Error())
 	}
 
 	err = out.Close()
 	if err != nil {
-		return "", "", fmt.Errorf("error closing new image: %s, error: %s", from, err.Error())
+		return "", "", fmt.Errorf("error closing new image: %s, error: %s", inputFile, err.Error())
 	}
 
-	log.WithFields(log.Fields{
-		"from": from,
-		"to":   newFile,
-	}).Info("Converted")
+	err = os.Remove(inputFile)
+	if err != nil {
+		return "", "", fmt.Errorf("error removing image: %s, error: %s", inputFile, err.Error())
+	}
 
-	return newFile, imageType, nil
+	return convertedFile, imageType, nil
 }
 
 // WouldOverwrite looks to see if the file were to be converted to a jpeg,
