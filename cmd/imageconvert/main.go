@@ -4,11 +4,11 @@ import (
 	"bufio"
 	"flag"
 	"os"
-	"regexp"
 	"runtime"
 	"time"
 
 	"github.com/kmulvey/humantime"
+	"github.com/kmulvey/imageconvert/pkg/imageconvert"
 	"github.com/kmulvey/path"
 	log "github.com/sirupsen/logrus"
 	"go.szostok.io/version"
@@ -164,12 +164,12 @@ func getFileList(inputPath path.Path, modSince humantime.TimeRange, force bool, 
 	case force:
 		trimmedFileList = inputPath.Files
 	case modSince.From != nilTime:
-		trimmedFileList = path.FilterFilesByDateRange(inputPath.Files, modSince.From, modSince.To)
+		trimmedFileList = path.FilterEntities(inputPath.Files, path.NewDateEntitiesFilter(modSince.From, modSince.To))
 	default:
-		trimmedFileList = path.FilterFilesBySkipMap(inputPath.Files, getSkipMap(processedLog))
+		trimmedFileList = path.FilterEntities(inputPath.Files, path.NewSkipMapEntitiesFilter(getSkipMap(processedLog)))
 	}
 
-	trimmedFileList = path.FilterFilesByRegex(trimmedFileList, regexp.MustCompile(".*.jpg$|.*.jpeg$|.*.png$|.*.webp$"))
+	trimmedFileList = path.FilterEntities(trimmedFileList, path.NewRegexEntitiesFilter(imageconvert.ImageExtensionRegex))
 
 	// these are all the files all the way down the dir tree
 	return path.OnlyNames(trimmedFileList)
