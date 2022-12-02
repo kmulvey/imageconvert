@@ -3,10 +3,15 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
+	"regexp"
+	"strings"
 
 	"github.com/kmulvey/imageconvert/pkg/imageconvert"
 	log "github.com/sirupsen/logrus"
 )
+
+var incorrectJPGRegex = regexp.MustCompile(".*.jpeg$|.*.JPG$|.*.JPEG$|")
 
 type conversionResult struct {
 	OriginalFileName  string
@@ -70,6 +75,17 @@ func convertImage(file string, compress bool) conversionResult {
 		if compressed {
 			log.Info(stdout)
 		}
+	}
+
+	// all jpgs must end with ".jpg" case sensitive, not .jpeg, .JPG, etc.
+	if incorrectJPGRegex.MatchString(result.ConvertedFileName) {
+		var renamedFile = strings.Replace(result.ConvertedFileName, filepath.Ext(result.ConvertedFileName), ".jpg", 1)
+		if err := os.Rename(result.ConvertedFileName, renamedFile); err != nil {
+			result.Error = fmt.Errorf("could rename file: %s, err: %w", result.ConvertedFileName, err)
+			return result
+		}
+		result.ConvertedFileName = renamedFile
+		result.Renamed = true
 	}
 
 	// RESET MODTIME
