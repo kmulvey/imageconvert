@@ -11,8 +11,6 @@ require (
 	golang.org/x/image v0.1.0
 )
 
-replace github.com/kmulvey/path => ../path
-
 require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.2.0 // indirect
