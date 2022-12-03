@@ -5,8 +5,10 @@ import (
 	"io"
 	"os"
 	"path"
+	"path/filepath"
 	"testing"
 
+	"github.com/kmulvey/goutils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -34,29 +36,18 @@ func TestConvertErrors(t *testing.T) {
 func TestConvert(t *testing.T) {
 	t.Parallel()
 
+	var testdir = goutils.RandomString(5)
+	var err = os.Mkdir(testdir, os.ModePerm)
+	assert.NoError(t, err)
+
 	for _, image := range []testPair{{"testimages/test.png", "png"}, {"testimages/test.webp", "webp"}} {
 
-		// copy test image into this dir
-		var from, err = os.Open(image.Name)
-		assert.NoError(t, err)
-
-		var testImage = path.Base(image.Name)
-		to, err := os.Create(testImage)
-		assert.NoError(t, err)
-
-		_, err = io.Copy(to, from)
-		assert.NoError(t, err)
-
-		// close from and to before converting
-		err = from.Close()
-		assert.NoError(t, err)
-		err = to.Close()
-		assert.NoError(t, err)
+		var testImage = prepareImage(t, testdir, image)
 
 		// convert
 		convertedImage, format, err := Convert(testImage)
 		assert.NoError(t, err)
-		assert.Equal(t, "test.jpg", convertedImage)
+		assert.Equal(t, filepath.Join(testdir, "test.jpg"), convertedImage)
 		assert.Equal(t, image.Type, format)
 
 		// make sure input file was deleted by Convert()
@@ -64,8 +55,35 @@ func TestConvert(t *testing.T) {
 			assert.NoError(t, err)
 		}
 
+		// make sure the converted file really exists
+		_, err = os.Stat(convertedImage)
+		assert.NoError(t, err)
+
 		// clean up
 		err = os.Remove(convertedImage)
 		assert.NoError(t, err)
 	}
+	assert.NoError(t, os.RemoveAll(testdir))
+}
+
+func prepareImage(t *testing.T, testdir string, image testPair) string {
+
+	// copy test image into this dir
+	from, err := os.Open(image.Name)
+	assert.NoError(t, err)
+
+	var testImage = filepath.Join(testdir, path.Base(image.Name))
+	to, err := os.Create(testImage)
+	assert.NoError(t, err)
+
+	_, err = io.Copy(to, from)
+	assert.NoError(t, err)
+
+	// close from and to before converting
+	err = from.Close()
+	assert.NoError(t, err)
+	err = to.Close()
+	assert.NoError(t, err)
+
+	return testImage
 }
