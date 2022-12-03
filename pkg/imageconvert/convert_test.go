@@ -2,6 +2,7 @@ package imageconvert
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"path"
@@ -42,7 +43,7 @@ func TestConvert(t *testing.T) {
 
 	for _, image := range []testPair{{"testimages/test.png", "png"}, {"testimages/test.webp", "webp"}} {
 
-		var testImage = prepareImage(t, testdir, image)
+		var testImage = moveImage(t, testdir, image)
 
 		// convert
 		convertedImage, format, err := Convert(testImage)
@@ -66,7 +67,80 @@ func TestConvert(t *testing.T) {
 	assert.NoError(t, os.RemoveAll(testdir))
 }
 
-func prepareImage(t *testing.T, testdir string, image testPair) string {
+func TestConvertJpeg(t *testing.T) {
+	t.Parallel()
+
+	var testdir = goutils.RandomString(5)
+	var err = os.Mkdir(testdir, os.ModePerm)
+	assert.NoError(t, err)
+
+	var image = testPair{"testimages/realjpg.jpg", "jpeg"}
+
+	var testImage = moveImage(t, testdir, image)
+
+	// convert
+	convertedImage, format, err := Convert(testImage)
+	assert.NoError(t, err)
+	assert.Equal(t, filepath.Join(testdir, "realjpg.jpg"), convertedImage)
+	assert.Equal(t, image.Type, format)
+
+	// make sure input file was deleted by Convert()
+	if _, err := os.Stat(testImage); !errors.Is(err, os.ErrNotExist) {
+		assert.NoError(t, err)
+	}
+
+	// make sure the converted file really exists
+	_, err = os.Stat(convertedImage)
+	assert.NoError(t, err)
+
+	// clean up
+	err = os.Remove(convertedImage)
+	assert.NoError(t, err)
+
+	assert.NoError(t, os.RemoveAll(testdir))
+}
+
+func TestConvertWouldOverwrite(t *testing.T) {
+	t.Parallel()
+
+	var testdir = goutils.RandomString(5)
+	var err = os.Mkdir(testdir, os.ModePerm)
+	assert.NoError(t, err)
+
+	var image = testPair{"testimages/test.png", "png"}
+
+	var testImage = moveImage(t, testdir, image)
+
+	// convert
+	convertedImage, format, err := Convert(testImage)
+	assert.NoError(t, err)
+	assert.Equal(t, filepath.Join(testdir, "test.jpg"), convertedImage)
+	assert.Equal(t, image.Type, format)
+
+	// do it again
+	moveImage(t, testdir, image)
+	convertedImage, format, err = Convert(testImage)
+	assert.Equal(t, fmt.Sprintf("converting %s/test.png would overwrite an existing jpeg, skipping", testdir), err.Error())
+	assert.Equal(t, filepath.Join(testdir, "test.png"), convertedImage)
+	assert.Equal(t, "", format)
+
+	// make sure input file was deleted by Convert()
+	if _, err := os.Stat(testImage); !errors.Is(err, os.ErrNotExist) {
+		assert.NoError(t, err)
+	}
+
+	// make sure the converted file really exists
+	_, err = os.Stat(convertedImage)
+	assert.NoError(t, err)
+
+	// clean up
+	err = os.Remove(convertedImage)
+	assert.NoError(t, err)
+
+	assert.NoError(t, os.RemoveAll(testdir))
+}
+
+func moveImage(t *testing.T, testdir string, image testPair) string {
 
 	// copy test image into this dir
 	from, err := os.Open(image.Name)
