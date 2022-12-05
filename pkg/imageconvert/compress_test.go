@@ -26,3 +26,21 @@ func TestQualityCheck(t *testing.T) {
 
 	assert.NoError(t, os.RemoveAll(testdir))
 }
+
+func TestCompressJPEG(t *testing.T) {
+	t.Parallel()
+
+	var testdir = makeTestDir(t)
+
+	var testImage = moveImage(t, testdir, testPair{Name: "./testimages/realjpg.jpg", Type: "jpeg"})
+	var compressed, _, err = CompressJPEG(90, testImage)
+	assert.NoError(t, err)
+	assert.True(t, compressed)
+
+	assert.NoError(t, os.WriteFile(filepath.Join(testdir, "test.txt"), make([]byte, 10), os.ModePerm))
+	compressed, _, err = CompressJPEG(90, filepath.Join(testdir, "test.txt"))
+	assert.True(t, strings.HasPrefix(err.Error(), "error running jpegoptim on image:"))
+	assert.False(t, compressed)
+
+	assert.NoError(t, os.RemoveAll(testdir))
+}
