@@ -22,7 +22,12 @@ jobs:
         id: go
 
       - name: install deps
-        run: sudo apt-get install jpegoptim imagemagick
+        uses: ConorMacBride/install-package@v1
+        with:
+          brew: jpegoptim imagemagick
+          brew-cask: jpegoptim imagemagick
+          apt: jpegoptim imagemagick
+          choco: jpegoptim ImageMagick
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
