@@ -21,6 +21,9 @@ jobs:
           go-version: 1.19
         id: go
 
+      - name: install deps
+        run: sudo apt-get install jpegoptim imagemagick
+
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
