@@ -3,6 +3,7 @@ module github.com/kmulvey/imageconvert
 go 1.19
 
 require (
+	github.com/kmulvey/goutils v0.6.0
 	github.com/kmulvey/humantime v0.4.3
 	github.com/kmulvey/path v0.13.0
 	github.com/sirupsen/logrus v1.9.0
@@ -27,7 +28,6 @@ require (
 	github.com/hokaccha/go-prettyjson v0.0.0-20211117102719-0474bc63780f // indirect
 	github.com/huandu/xstrings v1.4.0 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
-	github.com/kmulvey/goutils v0.6.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
@@ -41,8 +41,8 @@ require (
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	golang.org/x/crypto v0.3.0 // indirect
-	golang.org/x/exp v0.0.0-20221126150942-6ab00d035af9 // indirect
-	golang.org/x/sys v0.2.0 // indirect
+	golang.org/x/exp v0.0.0-20221204150635-6dcec336b2bb // indirect
+	golang.org/x/sys v0.3.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
