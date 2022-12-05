@@ -18,6 +18,14 @@ type testPair struct {
 	Type string
 }
 
+func makeTestDir(t *testing.T) string {
+	var testdir = "testdir_" + goutils.RandomString(5)
+	var err = os.Mkdir(testdir, os.ModePerm)
+	assert.NoError(t, err)
+
+	return testdir
+}
+
 func TestConvertErrors(t *testing.T) {
 	t.Parallel()
 
@@ -37,9 +45,7 @@ func TestConvertErrors(t *testing.T) {
 func TestConvert(t *testing.T) {
 	t.Parallel()
 
-	var testdir = goutils.RandomString(5)
-	var err = os.Mkdir(testdir, os.ModePerm)
-	assert.NoError(t, err)
+	var testdir = makeTestDir(t)
 
 	for _, image := range []testPair{{"testimages/test.png", "png"}, {"testimages/test.webp", "webp"}} {
 
@@ -70,9 +76,7 @@ func TestConvert(t *testing.T) {
 func TestConvertJpeg(t *testing.T) {
 	t.Parallel()
 
-	var testdir = goutils.RandomString(5)
-	var err = os.Mkdir(testdir, os.ModePerm)
-	assert.NoError(t, err)
+	var testdir = makeTestDir(t)
 
 	var image = testPair{"testimages/realjpg.jpg", "jpeg"}
 
@@ -103,9 +107,7 @@ func TestConvertJpeg(t *testing.T) {
 func TestConvertWouldOverwrite(t *testing.T) {
 	t.Parallel()
 
-	var testdir = goutils.RandomString(5)
-	var err = os.Mkdir(testdir, os.ModePerm)
-	assert.NoError(t, err)
+	var testdir = makeTestDir(t)
 
 	var image = testPair{"testimages/test.png", "png"}
 
