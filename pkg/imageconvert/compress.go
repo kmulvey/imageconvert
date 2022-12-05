@@ -1,6 +1,7 @@
 package imageconvert
 
 import (
+	"bytes"
 	"fmt"
 	"os/exec"
 	"strconv"
@@ -10,18 +11,26 @@ import (
 // QualityCheck uses imagemagick to determine the quality of the image
 // and returns true if the quality is above a given threshold
 func QualityCheck(maxQuality int, imagePath string) (bool, error) {
+	// have to escape the file spaces for the exec call
 	imagePath = EscapeFilePath(imagePath)
-	cmd := fmt.Sprintf("identify -format %s %s", "'%Q'", imagePath)
-	out, err := exec.Command("bash", "-c", cmd).Output()
+
+	var cmd = exec.Command("bash", "-c", fmt.Sprintf("identify -format %s %s", "'%Q'", imagePath))
+	var out bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &stderr
+
+	var err = cmd.Run()
 	if err != nil {
-		return false, fmt.Errorf("error running identify on image: %s, error: %s, output: %s", imagePath, err.Error(), out)
+		return false, fmt.Errorf("error running identify on image: %s, error: %s, output: %s", imagePath, err.Error(), out.String())
 	}
-	imageQuality, err := strconv.ParseInt(string(out), 10, 0)
+
+	imageQuality, err := strconv.ParseInt(out.String(), 10, 0)
 	if err != nil {
 		return false, fmt.Errorf("error parsing int for quality on image: %s, error: %s", imagePath, err.Error())
 	}
 
-	return int64(maxQuality) >= imageQuality, nil
+	return imageQuality >= int64(maxQuality), nil
 }
 
 // CompressJPEG uses jpegoptim to compress the image.
