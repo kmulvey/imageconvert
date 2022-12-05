@@ -14,7 +14,8 @@ func QualityCheck(maxQuality int, imagePath string) (bool, error) {
 	// have to escape the file spaces for the exec call
 	imagePath = EscapeFilePath(imagePath)
 
-	var cmd = exec.Command("bash", "-c", fmt.Sprintf("identify -format %s %s", "'%Q'", imagePath))
+	var identifyCmd = fmt.Sprintf("identify -format %s %s", "'%Q'", imagePath)
+	var cmd = exec.Command("bash", "-c", identifyCmd)
 	var out bytes.Buffer
 	var stderr bytes.Buffer
 	cmd.Stdout = &out
