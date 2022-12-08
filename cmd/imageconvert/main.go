@@ -36,7 +36,7 @@ func main() {
 	flag.BoolVar(&compress, "compress", false, "compress")
 	flag.BoolVar(&force, "force", false, "force")
 	flag.IntVar(&threads, "threads", 1, "number of threads to use")
-	flag.Var(&tr, "modified-since", "process files chnaged since this time")
+	flag.Var(&tr, "time-range", "process files chnaged since this time")
 	flag.BoolVar(&v, "version", false, "print version")
 	flag.BoolVar(&v, "v", false, "print version")
 	flag.BoolVar(&h, "help", false, "print options")
