@@ -11,7 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var incorrectJPGRegex = regexp.MustCompile(".*.jpeg$|.*.JPG$|.*.JPEG$")
+var incorrectSuffixRegex = regexp.MustCompile(".*.jpeg$|.*.png$|.*.webp$|.*.JPG$|.*.JPEG$|.*.PNG$|.*.WEBP$")
 
 type conversionResult struct {
 	OriginalFileName  string
@@ -77,8 +77,8 @@ func convertImage(file string, compress bool) conversionResult {
 		}
 	}
 
-	// all jpgs must end with ".jpg" case sensitive, not .jpeg, .JPG, etc.
-	if incorrectJPGRegex.MatchString(filepath.Base(result.ConvertedFileName)) {
+	// make sure every file ends in ".jpg".
+	if incorrectSuffixRegex.MatchString(filepath.Base(result.ConvertedFileName)) {
 		var renamedFile = strings.Replace(result.ConvertedFileName, filepath.Ext(result.ConvertedFileName), ".jpg", 1)
 		if err := os.Rename(result.ConvertedFileName, renamedFile); err != nil {
 			result.Error = fmt.Errorf("could rename file: %s, err: %w", result.ConvertedFileName, err)
