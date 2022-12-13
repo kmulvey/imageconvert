@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/kmulvey/imageconvert/pkg/imageconvert"
-	log "github.com/sirupsen/logrus"
 )
 
 var incorrectSuffixRegex = regexp.MustCompile(".*.jpeg$|.*.png$|.*.webp$|.*.JPG$|.*.JPEG$|.*.PNG$|.*.WEBP$")
@@ -17,6 +16,7 @@ type conversionResult struct {
 	OriginalFileName  string
 	ConvertedFileName string
 	ImageType         string
+	CompressOutput    string
 	Error             error
 	Compressed        bool
 	Renamed           bool
@@ -58,11 +58,6 @@ func convertImage(file string, compress bool) conversionResult {
 	}
 	result.ImageType = imageType
 
-	log.WithFields(log.Fields{
-		"from": file,
-		"to":   result.ConvertedFileName,
-	}).Info("Converted")
-
 	// COMPRESS IT
 	if compress {
 		compressed, stdout, err := imageconvert.CompressJPEG(85, result.ConvertedFileName)
@@ -73,7 +68,7 @@ func convertImage(file string, compress bool) conversionResult {
 		result.Compressed = compressed
 
 		if compressed {
-			log.Info(stdout)
+			result.CompressOutput = stdout
 		}
 	}
 

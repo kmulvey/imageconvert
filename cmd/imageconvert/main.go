@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"flag"
+	"fmt"
 	"os"
 	"runtime"
 	"time"
@@ -99,10 +100,15 @@ func main() {
 
 	// process results of our goroutines
 	log.Info("waiting for workers to complete")
+	var fileCount int
 	for result := range mergeResults(resultChans...) {
+
+		fileCount++
+
 		if result.Error != nil {
 			log.Error(result.Error)
 		} else {
+
 			conversionTotals[result.ImageType]++
 			if result.Compressed {
 				compressedTotal++
@@ -115,13 +121,18 @@ func main() {
 				log.Fatalf("error writing to log file, error: %s", err.Error())
 			}
 
-			log.WithFields(log.Fields{
+			var fields = log.Fields{
 				"original file name": result.OriginalFileName,
 				"new file name":      result.ConvertedFileName,
 				"type":               result.ImageType,
 				"compressed":         result.Compressed,
+				"progeress":          fmt.Sprintf("[%d/%d]", fileCount, len(files)),
 				"renamed":            result.Renamed,
-			}).Info("Converted")
+			}
+			if result.Compressed {
+				fields["compressed output"] = result.CompressOutput
+			}
+			log.WithFields(fields).Info("Converted")
 		}
 	}
 
@@ -155,7 +166,7 @@ func getSkipMap(processedImages *os.File) map[string]struct{} {
 }
 
 // getFileList filters the file list
-func getFileList(inputPath path.Path, modSince humantime.TimeRange, force bool, processedLog *os.File) []string {
+func getFileList(inputPath path.Path, tr humantime.TimeRange, force bool, processedLog *os.File) []string {
 
 	var nilTime = time.Time{}
 	var trimmedFileList []path.Entry
@@ -163,8 +174,8 @@ func getFileList(inputPath path.Path, modSince humantime.TimeRange, force bool, 
 	switch {
 	case force:
 		trimmedFileList = inputPath.Files
-	case modSince.From != nilTime:
-		trimmedFileList = path.FilterEntities(inputPath.Files, path.NewDateEntitiesFilter(modSince.From, modSince.To))
+	case tr.From != nilTime:
+		trimmedFileList = path.FilterEntities(inputPath.Files, path.NewDateEntitiesFilter(tr.From, tr.To))
 	default:
 		trimmedFileList = path.FilterEntities(inputPath.Files, path.NewSkipMapEntitiesFilter(getSkipMap(processedLog)))
 	}
