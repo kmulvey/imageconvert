@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"flag"
-	"fmt"
 	"os"
 	"runtime"
 	"time"
@@ -25,17 +24,15 @@ func main() {
 	// get the user options
 	var inputPath path.Path
 	var processedLogFile string
-	var compress bool
-	var force bool
+	var compress, force, watch, v, h bool
 	var threads int
-	var v bool
-	var h bool
 	var tr humantime.TimeRange
 
 	flag.Var(&inputPath, "path", "path to files, globbing must be quoted")
 	flag.StringVar(&processedLogFile, "log-file", "processed.log", "the file to write processes images to, so that we dont processes them again next time")
-	flag.BoolVar(&compress, "compress", false, "compress")
-	flag.BoolVar(&force, "force", false, "force")
+	flag.BoolVar(&compress, "compress", true, "compress")
+	flag.BoolVar(&force, "force", true, "force")
+	flag.BoolVar(&watch, "watch", true, "watch the dir")
 	flag.IntVar(&threads, "threads", 1, "number of threads to use")
 	flag.Var(&tr, "time-range", "process files chnaged since this time")
 	flag.BoolVar(&v, "version", false, "print version")
@@ -57,16 +54,15 @@ func main() {
 		os.Exit(0)
 	}
 
-	if len(inputPath.Files) == 0 {
-		log.Error("input path does not have any files")
-		flag.PrintDefaults()
+	if len(inputPath.Files) == 0 && !watch {
+		log.Error(" input path does not have any files")
 		return
 	}
 	if threads <= 0 || threads > runtime.GOMAXPROCS(0) {
 		threads = 1
 		log.Infof("invalid thread count: %d, setting threads to 1", threads)
 	}
-	log.Infof("Config: dir: %s, log file: %s, compress: %t, threads: %d, modified-since: %s", inputPath.ComputedPath.AbsolutePath, processedLogFile, compress, threads, tr)
+	log.Infof("Config: dir: %s, log file: %s, compress: %t, force: %t, watch: %t, threads: %d, modified-since: %s", inputPath.ComputedPath.AbsolutePath, processedLogFile, compress, force, watch, threads, tr)
 
 	log.Info("reading processed log file")
 	var processedLog, err = os.OpenFile(processedLogFile, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0755)
@@ -74,15 +70,10 @@ func main() {
 		log.Fatalf("processedLog open, error: %s", err.Error())
 	}
 
-	log.Info("building file list")
-	var files = getFileList(inputPath, tr, force, processedLog)
-
 	// spin up goroutines to do the work
-	log.Info("spinning up ", threads, " workers")
-	var conversionTotals = make(map[string]int)
-	var compressedTotal int
-	var renamedTotal int
 	var fileChan = make(chan string)
+	var conversionTotals = make(map[string]int)
+	var compressedTotal, renamedTotal int
 	var resultChans = make([]chan conversionResult, threads)
 	for i := 0; i < threads; i++ {
 		var results = make(chan conversionResult)
@@ -90,16 +81,40 @@ func main() {
 		go conversionWorker(fileChan, results, compress)
 	}
 
-	log.Info("beginning ", len(files), " conversions")
-	go func() {
-		for _, file := range files {
-			fileChan <- file
-		}
-		close(fileChan)
-	}()
+	// gather files
+	if watch {
+		log.Info("watrching dir")
+		var watchEvents = make(chan path.WatchEvent)
+		var watchEventsDebounced = make(chan path.WatchEvent)
+
+		// we need to debounce file writes because fsnotify does not tell us when the file has finished being written to (closed)
+		// so if we dont debounce the WRITE events we will try to open the file before its ready.
+		go waitTilFileWritesComplete(watchEvents, watchEventsDebounced)
+
+		go func() {
+			var seenFiles = make(map[string]struct{})
+			for file := range watchEventsDebounced {
+				if _, found := seenFiles[file.Entry.AbsolutePath]; !found {
+					fileChan <- file.Entry.AbsolutePath
+					seenFiles[file.Entry.AbsolutePath] = struct{}{}
+				}
+			}
+			close(fileChan)
+		}()
+		go watchDir(inputPath, watchEvents, tr, force, processedLog)
+
+	} else {
+		var files = getFileList(inputPath, tr, force, processedLog)
+		log.Info("beginning ", len(files), " conversions")
+		go func() {
+			for _, file := range files {
+				fileChan <- file
+			}
+			close(fileChan)
+		}()
+	}
 
 	// process results of our goroutines
-	log.Info("waiting for workers to complete")
 	var fileCount int
 	for result := range mergeResults(resultChans...) {
 
@@ -126,8 +141,8 @@ func main() {
 				"new file name":      result.ConvertedFileName,
 				"type":               result.ImageType,
 				"compressed":         result.Compressed,
-				"progeress":          fmt.Sprintf("[%d/%d]", fileCount, len(files)),
-				"renamed":            result.Renamed,
+				// "progeress":          fmt.Sprintf("[%d/%d]", fileCount, len(files)),
+				"renamed": result.Renamed,
 			}
 			if result.Compressed {
 				fields["compressed output"] = result.CompressOutput
@@ -137,10 +152,11 @@ func main() {
 	}
 
 	log.WithFields(log.Fields{
-		"converted pngs":  conversionTotals["png"],
-		"converted webps": conversionTotals["webp"],
-		"compressed":      compressedTotal,
-		"jpegs renamed":   renamedTotal,
+		"converted pngs":   conversionTotals["png"],
+		"converted webps":  conversionTotals["webp"],
+		"compressed":       compressedTotal,
+		"jpegs renamed":    renamedTotal,
+		"total files seen": fileCount,
 	}).Info("Done")
 
 	err = processedLog.Close()
