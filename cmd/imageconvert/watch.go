@@ -11,14 +11,13 @@ import (
 	"github.com/kmulvey/path"
 )
 
-var Close uint32 = 6
-
+// TimeOfEntry is a wrapper struct for waitTilFileWritesComplete
 type TimeOfEntry struct {
 	path.Entry
 	time.Time
 }
 
-// getFileList filters the file list
+// watchDir watches the given dir in a blocking manner with optional filters. Results are sent back on the files chan.
 func watchDir(inputPath path.Path, files chan path.WatchEvent, tr humantime.TimeRange, force bool, processedLog *os.File) {
 
 	var ctx, cancel = context.WithCancel(context.Background())
@@ -35,7 +34,7 @@ func watchDir(inputPath path.Path, files chan path.WatchEvent, tr humantime.Time
 
 	go func() {
 		for range errors {
-			// log.Errorf("error from WatchDir: %s", err)
+			// lwe dont really care for now but must drain this chan
 		}
 	}()
 
@@ -46,6 +45,9 @@ func watchDir(inputPath path.Path, files chan path.WatchEvent, tr humantime.Time
 	}
 }
 
+// waitTilFileWritesComplete is a way to debounce fs events because fsnotify does not send us an event when the file is
+// closed after writing so we just get a CREATE and a lot of WRITES. We gather the WRITE events and wait 200ms to see if
+// they finish for a given file and if they do we send the event on the eventsOut chan.
 func waitTilFileWritesComplete(eventsIn, eventsOut chan path.WatchEvent) {
 
 	var cache = make(map[string]TimeOfEntry)
@@ -63,7 +65,7 @@ func waitTilFileWritesComplete(eventsIn, eventsOut chan path.WatchEvent) {
 		case <-ticker.C:
 			for filename, entry := range cache {
 				if time.Since(entry.Time) > 200*time.Millisecond {
-					eventsOut <- path.WatchEvent{Entry: entry.Entry, Op: 6}
+					eventsOut <- path.WatchEvent{Entry: entry.Entry, Op: 6} // 6 here is nonsense but it doesnt matter
 					delete(cache, filename)
 				}
 			}
