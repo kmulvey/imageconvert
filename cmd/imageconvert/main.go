@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"flag"
+	"fmt"
 	"os"
 	"runtime"
 	"time"
@@ -31,8 +32,8 @@ func main() {
 	flag.Var(&inputPath, "path", "path to files, globbing must be quoted")
 	flag.StringVar(&processedLogFile, "log-file", "processed.log", "the file to write processes images to, so that we dont processes them again next time")
 	flag.BoolVar(&compress, "compress", true, "compress")
-	flag.BoolVar(&force, "force", true, "force")
-	flag.BoolVar(&watch, "watch", true, "watch the dir")
+	flag.BoolVar(&force, "force", false, "force")
+	flag.BoolVar(&watch, "watch", false, "watch the dir")
 	flag.IntVar(&threads, "threads", 1, "number of threads to use")
 	flag.Var(&tr, "time-range", "process files chnaged since this time")
 	flag.BoolVar(&v, "version", false, "print version")
@@ -64,7 +65,6 @@ func main() {
 	}
 	log.Infof("Config: dir: %s, log file: %s, compress: %t, force: %t, watch: %t, threads: %d, modified-since: %s", inputPath.ComputedPath.AbsolutePath, processedLogFile, compress, force, watch, threads, tr)
 
-	log.Info("reading processed log file")
 	var processedLog, err = os.OpenFile(processedLogFile, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0755)
 	if err != nil {
 		log.Fatalf("processedLog open, error: %s", err.Error())
@@ -73,7 +73,7 @@ func main() {
 	// spin up goroutines to do the work
 	var fileChan = make(chan string)
 	var conversionTotals = make(map[string]int)
-	var compressedTotal, renamedTotal int
+	var compressedTotal, renamedTotal, totalFiles int // totalFiles is only for non-watch
 	var resultChans = make([]chan conversionResult, threads)
 	for i := 0; i < threads; i++ {
 		var results = make(chan conversionResult)
@@ -83,7 +83,7 @@ func main() {
 
 	// gather files
 	if watch {
-		log.Info("watrching dir")
+		log.Infof("watrching dir: %s", inputPath)
 		var watchEvents = make(chan path.WatchEvent)
 		var watchEventsDebounced = make(chan path.WatchEvent)
 
@@ -105,7 +105,9 @@ func main() {
 
 	} else {
 		var files = getFileList(inputPath, tr, force, processedLog)
+		totalFiles = len(files)
 		log.Info("beginning ", len(files), " conversions")
+
 		go func() {
 			for _, file := range files {
 				fileChan <- file
@@ -115,6 +117,26 @@ func main() {
 	}
 
 	// process results of our goroutines
+	var fileCount = processAndWaitForResults(resultChans, conversionTotals, compressedTotal, renamedTotal, totalFiles, processedLog)
+
+	log.WithFields(log.Fields{
+		"converted pngs":   conversionTotals["png"],
+		"converted webps":  conversionTotals["webp"],
+		"compressed":       compressedTotal,
+		"jpegs renamed":    renamedTotal,
+		"total files seen": fileCount,
+	}).Info("Done")
+
+	err = processedLog.Close()
+	if err != nil {
+		log.Fatalf("error closing log file: %s", err.Error())
+	}
+}
+
+// processAndWaitForResults reads the results chan which is a stream of files that have been converted by the worker.
+// The files name is added to the processed log to prevent further processing in the future as well as tallying up some stats for logging.
+func processAndWaitForResults(resultChans []chan conversionResult, conversionTotals map[string]int, compressedTotal, renamedTotal, totalFiles int, processedLog *os.File) int {
+
 	var fileCount int
 	for result := range mergeResults(resultChans...) {
 
@@ -131,7 +153,7 @@ func main() {
 			if result.Renamed {
 				renamedTotal++
 			}
-			_, err = processedLog.WriteString(result.ConvertedFileName + "\n")
+			var _, err = processedLog.WriteString(result.ConvertedFileName + "\n")
 			if err != nil {
 				log.Fatalf("error writing to log file, error: %s", err.Error())
 			}
@@ -141,8 +163,8 @@ func main() {
 				"new file name":      result.ConvertedFileName,
 				"type":               result.ImageType,
 				"compressed":         result.Compressed,
-				// "progeress":          fmt.Sprintf("[%d/%d]", fileCount, len(files)),
-				"renamed": result.Renamed,
+				"progeress":          fmt.Sprintf("[%d/%d]", fileCount, totalFiles),
+				"renamed":            result.Renamed,
 			}
 			if result.Compressed {
 				fields["compressed output"] = result.CompressOutput
@@ -150,19 +172,7 @@ func main() {
 			log.WithFields(fields).Info("Converted")
 		}
 	}
-
-	log.WithFields(log.Fields{
-		"converted pngs":   conversionTotals["png"],
-		"converted webps":  conversionTotals["webp"],
-		"compressed":       compressedTotal,
-		"jpegs renamed":    renamedTotal,
-		"total files seen": fileCount,
-	}).Info("Done")
-
-	err = processedLog.Close()
-	if err != nil {
-		log.Fatalf("error closing log file: %s", err.Error())
-	}
+	return fileCount
 }
 
 // getSkipMap read the log from the last time this was run and
