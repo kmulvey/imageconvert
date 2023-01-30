@@ -15,3 +15,5 @@
 # vendor/
 cmd/imageconvert/imageconvert
 cmd/imageconvert/processed.log
+cmd/trimlog/trimlog
+cmd/fixfilenames/fixfilenames
