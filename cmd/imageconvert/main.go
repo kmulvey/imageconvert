@@ -1,15 +1,12 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
 	"os"
 	"runtime"
-	"time"
 
 	"github.com/kmulvey/humantime"
-	"github.com/kmulvey/imageconvert/pkg/imageconvert"
 	"github.com/kmulvey/path"
 	log "github.com/sirupsen/logrus"
 	"go.szostok.io/version"
@@ -81,7 +78,30 @@ func main() {
 		go conversionWorker(fileChan, results, compress)
 	}
 
-	// gather files
+	// start er up
+	totalFiles = start(watch, force, inputPath, tr, fileChan, processedLog)
+
+	// wait for and process results from our worker goroutines
+	var fileCount = processAndWaitForResults(resultChans, conversionTotals, compressedTotal, renamedTotal, totalFiles, processedLog)
+
+	log.WithFields(log.Fields{
+		"converted pngs":   conversionTotals["png"],
+		"converted webps":  conversionTotals["webp"],
+		"compressed":       compressedTotal,
+		"jpegs renamed":    renamedTotal,
+		"total files seen": fileCount,
+	}).Info("Done")
+
+	err = processedLog.Close()
+	if err != nil {
+		log.Fatalf("error closing log file: %s", err.Error())
+	}
+}
+
+func start(watch, force bool, inputPath path.Path, tr humantime.TimeRange, fileChan chan string, processedLog *os.File) int {
+
+	var totalFiles int // only relevant for non-watch mode
+
 	if watch {
 		log.Infof("watrching dir: %s", inputPath)
 		var watchEvents = make(chan path.WatchEvent)
@@ -116,21 +136,7 @@ func main() {
 		}()
 	}
 
-	// process results of our goroutines
-	var fileCount = processAndWaitForResults(resultChans, conversionTotals, compressedTotal, renamedTotal, totalFiles, processedLog)
-
-	log.WithFields(log.Fields{
-		"converted pngs":   conversionTotals["png"],
-		"converted webps":  conversionTotals["webp"],
-		"compressed":       compressedTotal,
-		"jpegs renamed":    renamedTotal,
-		"total files seen": fileCount,
-	}).Info("Done")
-
-	err = processedLog.Close()
-	if err != nil {
-		log.Fatalf("error closing log file: %s", err.Error())
-	}
+	return totalFiles
 }
 
 // processAndWaitForResults reads the results chan which is a stream of files that have been converted by the worker.
@@ -173,41 +179,4 @@ func processAndWaitForResults(resultChans []chan conversionResult, conversionTot
 		}
 	}
 	return fileCount
-}
-
-// getSkipMap read the log from the last time this was run and
-// puts those filenames in a map so we dont have to process them again
-// If you want to reprocess, just delete the file
-func getSkipMap(processedImages *os.File) map[string]struct{} {
-
-	var scanner = bufio.NewScanner(processedImages)
-	scanner.Split(bufio.ScanLines)
-	var compressedFiles = make(map[string]struct{})
-
-	for scanner.Scan() {
-		compressedFiles[scanner.Text()] = struct{}{}
-	}
-
-	return compressedFiles
-}
-
-// getFileList filters the file list
-func getFileList(inputPath path.Path, tr humantime.TimeRange, force bool, processedLog *os.File) []string {
-
-	var nilTime = time.Time{}
-	var trimmedFileList []path.Entry
-
-	switch {
-	case force:
-		trimmedFileList = inputPath.Files
-	case tr.From != nilTime:
-		trimmedFileList = path.FilterEntities(inputPath.Files, path.NewDateEntitiesFilter(tr.From, tr.To))
-	default:
-		trimmedFileList = path.FilterEntities(inputPath.Files, path.NewSkipMapEntitiesFilter(getSkipMap(processedLog)))
-	}
-
-	trimmedFileList = path.FilterEntities(trimmedFileList, path.NewRegexEntitiesFilter(imageconvert.ImageExtensionRegex))
-
-	// these are all the files all the way down the dir tree
-	return path.OnlyNames(trimmedFileList)
 }
