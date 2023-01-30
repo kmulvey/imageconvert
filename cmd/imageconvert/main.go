@@ -103,7 +103,7 @@ func start(watch, force bool, inputPath path.Path, tr humantime.TimeRange, fileC
 	var totalFiles int // only relevant for non-watch mode
 
 	if watch {
-		log.Infof("watrching dir: %s", inputPath)
+		log.Infof("watrching dir: %s", inputPath.GivenInput)
 		var watchEvents = make(chan path.WatchEvent)
 		var watchEventsDebounced = make(chan path.WatchEvent)
 
