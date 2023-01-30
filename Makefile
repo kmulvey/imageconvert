@@ -1,5 +1,5 @@
 REPOPATH = github.com/kmulvey/imageconvert
-BUILDS := imageconvert
+BUILDS := imageconvert fixfilenames trimlog
 
 build: 
 	for target in $(BUILDS); do \
