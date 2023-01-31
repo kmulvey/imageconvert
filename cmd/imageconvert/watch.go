@@ -51,7 +51,7 @@ func watchDir(inputPath path.Path, files chan path.WatchEvent, tr humantime.Time
 func waitTilFileWritesComplete(eventsIn, eventsOut chan path.WatchEvent) {
 
 	var cache = make(map[string]TimeOfEntry)
-	var ticker = time.NewTicker(500 * time.Millisecond)
+	var ticker = time.NewTicker(200 * time.Millisecond)
 
 	for {
 		select {
@@ -60,11 +60,13 @@ func waitTilFileWritesComplete(eventsIn, eventsOut chan path.WatchEvent) {
 				close(eventsOut)
 				return
 			}
+
 			cache[event.Entry.AbsolutePath] = TimeOfEntry{Entry: event.Entry, Time: time.Now()}
 
 		case <-ticker.C:
+
 			for filename, entry := range cache {
-				if time.Since(entry.Time) > 200*time.Millisecond {
+				if time.Since(entry.Time) > 3*time.Second { // this is a long time because large files take a while to get written to spinning rust
 					eventsOut <- path.WatchEvent{Entry: entry.Entry, Op: 6} // 6 here is nonsense but it doesnt matter
 					delete(cache, filename)
 				}
