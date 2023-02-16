@@ -71,6 +71,6 @@ jobs:
         uses: goreleaser/goreleaser-action@v3
         with:
           version: latest
-          args: release --config .goreleaser.yaml --rm-dist
+          args: release --config .goreleaser.yaml --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GO_RELEASER_GITHUB_TOKEN }}
