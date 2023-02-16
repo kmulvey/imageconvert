@@ -15,15 +15,19 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var randSource *rand.Rand
+
 func init() {
-	rand.Seed(time.Now().UnixNano())
+	// rand here is used to generate random strings, it does not need to be crypto secure so we suppress the linter warning
+	//nolint:gosec
+	randSource = rand.New(rand.NewSource(time.Now().UnixNano()))
 }
 
 func main() {
 
 	var inputPath string
 	var h bool
-	flag.StringVar(&inputPath, "path", "~/Documents", "path to log")
+	flag.StringVar(&inputPath, "path", "", "path to log")
 	flag.BoolVar(&h, "help", false, "print options")
 	flag.Parse()
 
@@ -32,7 +36,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	var files, err = path.List(inputPath, path.NewRegexListFilter(imageconvert.ImageExtensionRegex))
+	var files, err = path.List(inputPath, 2, path.NewRegexEntitiesFilter(imageconvert.ImageExtensionRegex))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -79,5 +83,5 @@ func validCharacter(r rune) bool {
 
 func randomString() string {
 	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
-	return string(letters[rand.Intn(len(letters))])
+	return string(letters[randSource.Intn(len(letters))])
 }
