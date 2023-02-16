@@ -13,12 +13,12 @@ import (
 
 // TimeOfEntry is a wrapper struct for waitTilFileWritesComplete
 type TimeOfEntry struct {
-	path.Entry
+	path.WatchEvent
 	time.Time
 }
 
 // watchDir watches the given dir in a blocking manner with optional filters. Results are sent back on the files chan.
-func watchDir(inputPath path.Path, files chan path.WatchEvent, tr humantime.TimeRange, force bool, processedLog *os.File) {
+func watchDir(inputPath string, files chan path.WatchEvent, tr humantime.TimeRange, force bool, processedLog *os.File) {
 
 	var ctx, cancel = context.WithCancel(context.Background())
 	defer cancel()
@@ -39,9 +39,9 @@ func watchDir(inputPath path.Path, files chan path.WatchEvent, tr humantime.Time
 	}()
 
 	if force {
-		path.WatchDir(ctx, inputPath.ComputedPath.AbsolutePath, true, files, errors, extensionFilter, path.NewOpWatchFilter(fsnotify.Create))
+		path.WatchDir(ctx, inputPath, 1, files, errors, extensionFilter, path.NewOpWatchFilter(fsnotify.Create))
 	} else {
-		path.WatchDir(ctx, inputPath.ComputedPath.AbsolutePath, true, files, errors, dateFilter, skipFilter, extensionFilter, path.NewOpWatchFilter(fsnotify.Create))
+		path.WatchDir(ctx, inputPath, 1, files, errors, dateFilter, skipFilter, extensionFilter, path.NewOpWatchFilter(fsnotify.Create))
 	}
 }
 
@@ -61,13 +61,13 @@ func waitTilFileWritesComplete(eventsIn, eventsOut chan path.WatchEvent) {
 				return
 			}
 
-			cache[event.Entry.AbsolutePath] = TimeOfEntry{Entry: event.Entry, Time: time.Now()}
+			cache[event.Entry.AbsolutePath] = TimeOfEntry{WatchEvent: event, Time: time.Now()}
 
 		case <-ticker.C:
 
 			for filename, entry := range cache {
 				if time.Since(entry.Time) > 3*time.Second { // this is a long time because large files take a while to get written to spinning rust
-					eventsOut <- path.WatchEvent{Entry: entry.Entry, Op: 6} // 6 here is nonsense but it doesnt matter
+					eventsOut <- entry.WatchEvent
 					delete(cache, filename)
 				}
 			}

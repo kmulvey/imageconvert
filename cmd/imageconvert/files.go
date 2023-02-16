@@ -27,18 +27,18 @@ func getSkipMap(processedImages *os.File) map[string]struct{} {
 }
 
 // getFileList filters the file list
-func getFileList(inputPath path.Path, tr humantime.TimeRange, force bool, processedLog *os.File) []string {
+func getFileList(inputFiles []path.Entry, tr humantime.TimeRange, force bool, processedLog *os.File) []string {
 
 	var nilTime = time.Time{}
 	var trimmedFileList []path.Entry
 
 	switch {
 	case force:
-		trimmedFileList = inputPath.Files
+		trimmedFileList = inputFiles
 	case tr.From != nilTime:
-		trimmedFileList = path.FilterEntities(inputPath.Files, path.NewDateEntitiesFilter(tr.From, tr.To))
+		trimmedFileList = path.FilterEntities(inputFiles, path.NewDateEntitiesFilter(tr.From, tr.To))
 	default:
-		trimmedFileList = path.FilterEntities(inputPath.Files, path.NewSkipMapEntitiesFilter(getSkipMap(processedLog)))
+		trimmedFileList = path.FilterEntities(inputFiles, path.NewSkipMapEntitiesFilter(getSkipMap(processedLog)))
 	}
 
 	trimmedFileList = path.FilterEntities(trimmedFileList, path.NewRegexEntitiesFilter(imageconvert.ImageExtensionRegex))

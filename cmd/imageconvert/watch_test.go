@@ -9,7 +9,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var DummyEntry = path.Entry{FileInfo: nil, AbsolutePath: "/home/kmulvey/src/go/src/github.com/kmulvey/imageconvert/cmd/imageconvert/watch.go", Globs: []path.Entry(nil)}
+var DummyEntry = path.Entry{
+	FileInfo:     nil,
+	AbsolutePath: "/home/kmulvey/src/go/src/github.com/kmulvey/imageconvert/cmd/imageconvert/watch.go",
+	Children:     []path.Entry{},
+}
 
 func TestWaitTilFileWritesComplete(t *testing.T) {
 	t.Parallel()

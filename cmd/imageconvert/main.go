@@ -7,6 +7,7 @@ import (
 	"runtime"
 
 	"github.com/kmulvey/humantime"
+	"github.com/kmulvey/imageconvert/pkg/imageconvert"
 	"github.com/kmulvey/path"
 	log "github.com/sirupsen/logrus"
 	"go.szostok.io/version"
@@ -20,13 +21,13 @@ func main() {
 	})
 
 	// get the user options
-	var inputPath path.Path
+	var inputPath string
 	var processedLogFile string
 	var compress, force, watch, v, h bool
 	var threads int
 	var tr humantime.TimeRange
 
-	flag.Var(&inputPath, "path", "path to files, globbing must be quoted")
+	flag.StringVar(&inputPath, "path", "", "path to files, globbing must be quoted")
 	flag.StringVar(&processedLogFile, "log-file", "processed.log", "the file to write processes images to, so that we dont processes them again next time")
 	flag.BoolVar(&compress, "compress", true, "compress")
 	flag.BoolVar(&force, "force", false, "force")
@@ -52,17 +53,23 @@ func main() {
 		os.Exit(0)
 	}
 
-	if len(inputPath.Files) == 0 && !watch {
+	var files, err = path.List(inputPath, 2, path.NewRegexEntitiesFilter(imageconvert.ImageExtensionRegex))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if len(files) == 0 && !watch {
 		log.Error(" input path does not have any files")
 		return
 	}
+
 	if threads <= 0 || threads > runtime.GOMAXPROCS(0) {
 		threads = 1
 		log.Infof("invalid thread count: %d, setting threads to 1", threads)
 	}
-	log.Infof("Config: dir: %s, log file: %s, compress: %t, force: %t, watch: %t, threads: %d, modified-since: %s", inputPath.ComputedPath.AbsolutePath, processedLogFile, compress, force, watch, threads, tr)
+	log.Infof("Config: dir: %s, log file: %s, compress: %t, force: %t, watch: %t, threads: %d, modified-since: %s", inputPath, processedLogFile, compress, force, watch, threads, tr)
 
-	var processedLog, err = os.OpenFile(processedLogFile, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0755)
+	processedLog, err := os.OpenFile(processedLogFile, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0755)
 	if err != nil {
 		log.Fatalf("processedLog open, error: %s", err.Error())
 	}
@@ -79,7 +86,7 @@ func main() {
 	}
 
 	// start er up
-	totalFiles = start(watch, force, inputPath, tr, fileChan, processedLog)
+	totalFiles = start(watch, force, inputPath, files, tr, fileChan, processedLog)
 
 	// wait for and process results from our worker goroutines
 	var fileCount = processAndWaitForResults(resultChans, conversionTotals, compressedTotal, renamedTotal, totalFiles, processedLog)
@@ -98,12 +105,12 @@ func main() {
 	}
 }
 
-func start(watch, force bool, inputPath path.Path, tr humantime.TimeRange, fileChan chan string, processedLog *os.File) int {
+func start(watch, force bool, inputPath string, inputFiles []path.Entry, tr humantime.TimeRange, fileChan chan string, processedLog *os.File) int {
 
 	var totalFiles int // only relevant for non-watch mode
 
 	if watch {
-		log.Infof("watrching dir: %s", inputPath.GivenInput)
+		log.Infof("watrching dir: %s", inputFiles)
 		var watchEvents = make(chan path.WatchEvent)
 		var watchEventsDebounced = make(chan path.WatchEvent)
 
@@ -124,7 +131,8 @@ func start(watch, force bool, inputPath path.Path, tr humantime.TimeRange, fileC
 		go watchDir(inputPath, watchEvents, tr, force, processedLog)
 
 	} else {
-		var files = getFileList(inputPath, tr, force, processedLog)
+
+		var files = getFileList(inputFiles, tr, force, processedLog)
 		totalFiles = len(files)
 		log.Info("beginning ", len(files), " conversions")
 
