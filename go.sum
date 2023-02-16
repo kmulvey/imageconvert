@@ -46,8 +46,8 @@ github.com/kmulvey/goutils v0.6.0 h1:N3ZW0f9jf0lzXE7/LeDNw1jBDHiKnvX89/D9F37h/lU
 github.com/kmulvey/goutils v0.6.0/go.mod h1:piD3FiBNFCOGTorRV2yFpjOUQFXVO5IiCHx0Nmmom8g=
 github.com/kmulvey/humantime v0.4.4 h1:qbNqA5YVrDxOAPPCZpL7/KGlNAj5b4nRy1CwvqymIgg=
 github.com/kmulvey/humantime v0.4.4/go.mod h1:KvEx/whEznif/noiZ9eR4gFF41De003Tk7ZtRW6WCqg=
-github.com/kmulvey/path v1.16.1 h1:TmGhQbI86RpHsAtP9lK5aVRxPXXRbAUCMZkCb9htKW8=
-github.com/kmulvey/path v1.16.1/go.mod h1:QrA+LB7ek6kwk6d00d85n6Kt+TrSSFREKqxBp+SZw+g=
+github.com/kmulvey/path v1.16.2 h1:xkgNAmA8wcBfivDmgIt/Ca+6IgNfy3vQ+m2Wv/gtQ7g=
+github.com/kmulvey/path v1.16.2/go.mod h1:QrA+LB7ek6kwk6d00d85n6Kt+TrSSFREKqxBp+SZw+g=
 github.com/kr/pretty v0.3.0 h1:WgNl7dwNpEZ6jJ9k1snq4pZsg7DOEN8hP9Xw0Tsjwk0=
 github.com/kr/text v0.2.0 h1:5Nx0Ya0ZqY2ygV366QzturHI13Jq95ApcVaJBhpS+AY=
 github.com/leodido/go-urn v1.2.0/go.mod h1:+8+nEpDfqqsY+g338gtMEUOtuK+4dEMhiQEgxpxOKII=
