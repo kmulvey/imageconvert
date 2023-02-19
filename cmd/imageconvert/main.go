@@ -110,7 +110,7 @@ func start(watch, force bool, inputPath string, inputFiles []path.Entry, tr huma
 	var totalFiles int // only relevant for non-watch mode
 
 	if watch {
-		log.Infof("watrching dir: %s", inputFiles)
+		log.Infof("watrching dir: %s", inputPath)
 		var watchEvents = make(chan path.WatchEvent)
 		var watchEventsDebounced = make(chan path.WatchEvent)
 
