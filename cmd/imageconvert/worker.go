@@ -20,14 +20,15 @@ type conversionResult struct {
 	Error             error
 	Compressed        bool
 	Renamed           bool
+	Resized           bool
 }
 
 // conversionWorker reads from the file chan and does all the conversion work.
-func conversionWorker(files chan string, results chan conversionResult, compress bool) {
+func conversionWorker(files chan string, results chan conversionResult, compress, resize bool) {
 	defer close(results)
 
 	for file := range files {
-		results <- convertImage(file, compress)
+		results <- convertImage(file, compress, resize)
 	}
 }
 
@@ -37,7 +38,7 @@ func conversionWorker(files chan string, results chan conversionResult, compress
 // 2. convert it to jpg
 // 3. compress it (if enabled)
 // 4. reset the mod time
-func convertImage(file string, compress bool) conversionResult {
+func convertImage(file string, compress, resize bool) conversionResult {
 
 	var result = conversionResult{
 		OriginalFileName: file,
@@ -57,6 +58,16 @@ func convertImage(file string, compress bool) conversionResult {
 		return result
 	}
 	result.ImageType = imageType
+
+	// RESIZE IT
+	if resize {
+		resized, err := imageconvert.Resize(result.ConvertedFileName)
+		if err != nil {
+			result.Error = fmt.Errorf("error resizing image: %s, error: %w", file, err)
+			return result
+		}
+		result.Resized = resized
+	}
 
 	// COMPRESS IT
 	if compress {
@@ -89,5 +100,6 @@ func convertImage(file string, compress bool) conversionResult {
 		result.Error = fmt.Errorf("could not reset mod time of file: %s, err: %w", result.ConvertedFileName, err)
 		return result
 	}
+
 	return result
 }

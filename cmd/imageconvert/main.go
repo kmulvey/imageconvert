@@ -23,7 +23,7 @@ func main() {
 	// get the user options
 	var inputPath string
 	var processedLogFile string
-	var compress, force, watch, v, h bool
+	var compress, force, watch, resize, v, h bool
 	var threads int
 	var tr humantime.TimeRange
 
@@ -32,6 +32,7 @@ func main() {
 	flag.BoolVar(&compress, "compress", true, "compress")
 	flag.BoolVar(&force, "force", false, "force")
 	flag.BoolVar(&watch, "watch", false, "watch the dir")
+	flag.BoolVar(&resize, "resize", false, "resize down")
 	flag.IntVar(&threads, "threads", 1, "number of threads to use")
 	flag.Var(&tr, "time-range", "process files chnaged since this time")
 	flag.BoolVar(&v, "version", false, "print version")
@@ -77,26 +78,27 @@ func main() {
 	// spin up goroutines to do the work
 	var fileChan = make(chan string)
 	var conversionTotals = make(map[string]int)
-	var compressedTotal, renamedTotal, totalFiles int // totalFiles is only for non-watch
 	var resultChans = make([]chan conversionResult, threads)
 	for i := 0; i < threads; i++ {
 		var results = make(chan conversionResult)
 		resultChans[i] = results
-		go conversionWorker(fileChan, results, compress)
+		go conversionWorker(fileChan, results, compress, resize)
 	}
 
 	// start er up
-	totalFiles = start(watch, force, inputPath, files, tr, fileChan, processedLog)
+	// totalFiles is only for non-watch
+	var totalFiles = start(watch, force, inputPath, files, tr, fileChan, processedLog)
 
 	// wait for and process results from our worker goroutines
-	var fileCount = processAndWaitForResults(resultChans, conversionTotals, compressedTotal, renamedTotal, totalFiles, processedLog)
+	var compressedTotal, renamedTotal, resizedTotal = processAndWaitForResults(resultChans, conversionTotals, totalFiles, processedLog)
 
 	log.WithFields(log.Fields{
 		"converted pngs":   conversionTotals["png"],
 		"converted webps":  conversionTotals["webp"],
 		"compressed":       compressedTotal,
 		"jpegs renamed":    renamedTotal,
-		"total files seen": fileCount,
+		"resized":          resizedTotal,
+		"total files seen": totalFiles,
 	}).Info("Done")
 
 	err = processedLog.Close()
@@ -149,9 +151,9 @@ func start(watch, force bool, inputPath string, inputFiles []path.Entry, tr huma
 
 // processAndWaitForResults reads the results chan which is a stream of files that have been converted by the worker.
 // The files name is added to the processed log to prevent further processing in the future as well as tallying up some stats for logging.
-func processAndWaitForResults(resultChans []chan conversionResult, conversionTotals map[string]int, compressedTotal, renamedTotal, totalFiles int, processedLog *os.File) int {
+func processAndWaitForResults(resultChans []chan conversionResult, conversionTypeTotals map[string]int, totalFiles int, processedLog *os.File) (int, int, int) {
 
-	var fileCount int
+	var compressedTotal, renamedTotal, resizedTotal, fileCount int
 	for result := range mergeResults(resultChans...) {
 
 		fileCount++
@@ -160,13 +162,20 @@ func processAndWaitForResults(resultChans []chan conversionResult, conversionTot
 			log.Error(result.Error)
 		} else {
 
-			conversionTotals[result.ImageType]++
+			conversionTypeTotals[result.ImageType]++
+
 			if result.Compressed {
 				compressedTotal++
 			}
+
 			if result.Renamed {
 				renamedTotal++
 			}
+
+			if result.Resized {
+				resizedTotal++
+			}
+
 			var _, err = processedLog.WriteString(result.ConvertedFileName + "\n")
 			if err != nil {
 				log.Fatalf("error writing to log file, error: %s", err.Error())
@@ -179,6 +188,7 @@ func processAndWaitForResults(resultChans []chan conversionResult, conversionTot
 				"compressed":         result.Compressed,
 				"progeress":          fmt.Sprintf("[%d/%d]", fileCount, totalFiles),
 				"renamed":            result.Renamed,
+				"resized":            result.Resized,
 			}
 			if result.Compressed {
 				fields["compressed output"] = result.CompressOutput
@@ -186,5 +196,6 @@ func processAndWaitForResults(resultChans []chan conversionResult, conversionTot
 			log.WithFields(fields).Info("Converted")
 		}
 	}
-	return fileCount
+
+	return compressedTotal, renamedTotal, resizedTotal
 }

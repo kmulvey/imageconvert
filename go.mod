@@ -8,6 +8,7 @@ require (
 	github.com/kmulvey/goutils v0.6.0
 	github.com/kmulvey/humantime v0.4.4
 	github.com/kmulvey/path v1.16.2
+	github.com/kmulvey/resize v1.0.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.1
 	go.szostok.io/version v1.1.0
