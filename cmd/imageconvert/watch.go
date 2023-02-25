@@ -66,7 +66,7 @@ func waitTilFileWritesComplete(eventsIn, eventsOut chan path.WatchEvent) {
 		case <-ticker.C:
 
 			for filename, entry := range cache {
-				if time.Since(entry.Time) > 3*time.Second { // this is a long time because large files take a while to get written to spinning rust
+				if time.Since(entry.Time) > 6*time.Second { // this is a long time because large files take a while to get written to spinning rust
 					eventsOut <- entry.WatchEvent
 					delete(cache, filename)
 				}
