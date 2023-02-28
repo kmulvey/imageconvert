@@ -3,7 +3,7 @@ module github.com/kmulvey/imageconvert
 go 1.19
 
 require (
-	github.com/briandowns/spinner v1.21.0
+	github.com/briandowns/spinner v1.22.0
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/kmulvey/goutils v0.6.0
 	github.com/kmulvey/humantime v0.4.4
