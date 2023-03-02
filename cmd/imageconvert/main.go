@@ -54,7 +54,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	var files, err = path.List(inputPath, 2, path.NewRegexEntitiesFilter(imageconvert.ImageExtensionRegex))
+	var files, err = path.List(inputPath, 2, false, path.NewRegexEntitiesFilter(imageconvert.ImageExtensionRegex))
 	if err != nil {
 		log.Fatal(err)
 	}

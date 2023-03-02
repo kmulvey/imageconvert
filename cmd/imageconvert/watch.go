@@ -34,14 +34,14 @@ func watchDir(inputPath string, files chan path.WatchEvent, tr humantime.TimeRan
 
 	go func() {
 		for range errors {
-			// lwe dont really care for now but must drain this chan
+			// we dont really care for now but must drain this chan
 		}
 	}()
 
 	if force {
-		path.WatchDir(ctx, inputPath, 1, files, errors, extensionFilter, path.NewOpWatchFilter(fsnotify.Create))
+		path.WatchDir(ctx, inputPath, 1, false, files, errors, extensionFilter, path.NewOpWatchFilter(fsnotify.Create))
 	} else {
-		path.WatchDir(ctx, inputPath, 1, files, errors, dateFilter, skipFilter, extensionFilter, path.NewOpWatchFilter(fsnotify.Create))
+		path.WatchDir(ctx, inputPath, 1, false, files, errors, dateFilter, skipFilter, extensionFilter, path.NewOpWatchFilter(fsnotify.Create))
 	}
 }
 
