@@ -1,14 +1,56 @@
 before:
   hooks:
-    # You may remove this if you don't use go modules.
     - go mod tidy
 builds:
+  
   - id: imageconvert
     main: ./cmd/imageconvert/
+    binary: imageconvert
+    ldflags:
+      - -s -w -X main.build={{.Version}}
     goos:
-      - linux
+      - freebsd
       - windows
       - darwin
+      - linux
+      - js
+
+    goarch:
+      - amd64
+      - arm64
+
+  - id: trimlog
+    main: ./cmd/trimlog/
+    binary: trimlog
+    ldflags:
+      - -s -w -X main.build={{.Version}}
+    goos:
+      - freebsd
+      - windows
+      - darwin
+      - linux
+      - js
+
+    goarch:
+      - amd64
+      - arm64
+
+  - id: fixfilenames
+    main: ./cmd/fixfilenames/
+    binary: fixfilenames
+    ldflags:
+      - -s -w -X main.build={{.Version}}
+    goos:
+      - freebsd
+      - windows
+      - darwin
+      - linux
+      - js
+
+    goarch:
+      - amd64
+      - arm64
+
 archives:
   - id: foo
     name_template: >-
