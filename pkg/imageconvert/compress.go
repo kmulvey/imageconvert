@@ -12,6 +12,7 @@ import (
 // QualityCheck uses imagemagick to determine the quality of the image
 // and returns true if the quality is above a given threshold
 func QualityCheck(maxQuality int, imagePath string) (bool, error) {
+
 	// lint input, helps prevent arbitrary code execution
 	if _, err := os.Stat(imagePath); err != nil {
 		return false, err
@@ -46,6 +47,7 @@ func QualityCheck(maxQuality int, imagePath string) (bool, error) {
 // 2. jpegoptim output (if you want to log it)
 // 3. error
 func CompressJPEG(quality int, imagePath string) (bool, string, error) {
+
 	// lint input, helps prevent arbitrary code execution
 	if _, err := os.Stat(imagePath); err != nil {
 		return false, "", err

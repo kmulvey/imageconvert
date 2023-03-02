@@ -77,6 +77,7 @@ func Convert(inputFile string) (string, string, error) {
 // WouldOverwrite looks to see if the file were to be converted to a jpeg,
 // would it overwite an existing jpg file with the same name
 func WouldOverwrite(path string) bool {
+
 	var ext = filepath.Ext(path)
 	var jpgPath = strings.Replace(path, ext, ".jpg", 1)
 

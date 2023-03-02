@@ -9,7 +9,8 @@ import (
 	"github.com/kmulvey/resize"
 )
 
-func Resize(filename string) (bool, error) {
+func (ic *ImageConverter) Resize(filename string) (bool, error) {
+
 	// open file
 	file, err := os.Open(filename)
 	if err != nil {
@@ -22,7 +23,7 @@ func Resize(filename string) (bool, error) {
 		return false, fmt.Errorf("error decoding config for resizing: %w", err)
 	}
 
-	if config.Width < 2560 && config.Height < 1440 {
+	if config.Width < int(ic.ResizeWidthThreshold) && config.Height < int(ic.ResizeHeightThreshold) {
 		return false, nil
 	}
 
@@ -42,9 +43,9 @@ func Resize(filename string) (bool, error) {
 	// preserve aspect ratio
 	var resizedImage image.Image
 	if config.Width > config.Height {
-		resizedImage = resize.Resize(5120, 0, img, resize.Lanczos3)
+		resizedImage = resize.Resize(uint(ic.ResizeWidth), 0, img, resize.Lanczos3)
 	} else {
-		resizedImage = resize.Resize(0, 2880, img, resize.Lanczos3)
+		resizedImage = resize.Resize(0, uint(ic.ResizeHeight), img, resize.Lanczos3)
 	}
 
 	out, err := os.Create(filename)
