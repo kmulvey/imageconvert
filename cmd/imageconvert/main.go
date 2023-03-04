@@ -2,14 +2,14 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"os"
 	"runtime"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/kmulvey/humantime"
 	"github.com/kmulvey/imageconvert/pkg/imageconvert"
-	"github.com/kmulvey/path"
 	log "github.com/sirupsen/logrus"
 	"go.szostok.io/version"
 	"go.szostok.io/version/printer"
@@ -22,20 +22,22 @@ func main() {
 	})
 
 	// get the user options
-	var inputPath string
-	var processedLogFile string
-	var compress, force, watch, resize, v, h bool
-	var threads int
+	var inputPath, processedLogFile, skipMapFile, resizeThreshold, resizeSize string
+	var compress, force, watch, v, h bool
+	var threads, directoryDepth int
 	var tr humantime.TimeRange
 
 	flag.StringVar(&inputPath, "path", "", "path to files, globbing must be quoted")
-	flag.StringVar(&processedLogFile, "log-file", "processed.log", "the file to write processes images to, so that we dont processes them again next time")
+	flag.StringVar(&processedLogFile, "processed-file", "processed.log", "the file to write processes images to, so that we dont processes them again next time")
+	flag.StringVar(&skipMapFile, "skip-file", "processed.log", "the file to write processes images to, so that we dont processes them again next time")
+	flag.StringVar(&resizeThreshold, "resize-threshold", "", "the min size to consider for resizing in the formate [width]x[height] e.g. 230x400")
+	flag.StringVar(&resizeSize, "resize-size", "", "the size to resize the images to while preserving the aspect ratio [width]x[height] e.g. 230x400")
+	flag.IntVar(&threads, "threads", 1, "number of threads to use")
+	flag.IntVar(&directoryDepth, "depth", 1, "number levels to search directories for images")
+	flag.Var(&tr, "time-range", "process files chnaged since this time")
 	flag.BoolVar(&compress, "compress", true, "compress")
 	flag.BoolVar(&force, "force", false, "force")
 	flag.BoolVar(&watch, "watch", false, "watch the dir")
-	flag.BoolVar(&resize, "resize", false, "resize down")
-	flag.IntVar(&threads, "threads", 1, "number of threads to use")
-	flag.Var(&tr, "time-range", "process files chnaged since this time")
 	flag.BoolVar(&v, "version", false, "print version")
 	flag.BoolVar(&v, "v", false, "print version")
 	flag.BoolVar(&h, "help", false, "print options")
@@ -55,148 +57,82 @@ func main() {
 		os.Exit(0)
 	}
 
-	var files, err = path.List(inputPath, 2, false, path.NewRegexEntitiesFilter(imageconvert.ImageExtensionRegex))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if len(files) == 0 && !watch {
-		log.Error(" input path does not have any files")
-		return
-	}
-
 	if threads <= 0 || threads > runtime.GOMAXPROCS(0) {
 		threads = 1
 		log.Infof("invalid thread count: %d, setting threads to 1", threads)
 	}
+
 	log.Infof("Config: dir: %s, log file: %s, compress: %t, force: %t, watch: %t, threads: %d, modified-since: %s", inputPath, processedLogFile, compress, force, watch, threads, tr)
 
-	processedLog, err := os.OpenFile(processedLogFile, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0755)
+	// DELETE
+	inputPath = "~/scratch/"
+	compress = true
+	resizeThreshold = "1000x1000"
+	resizeSize = "2000x2000"
+	watch = true
+
+	var ic, err = imageconvert.NewWithDefaults(inputPath, processedLogFile, skipMapFile, uint8(directoryDepth))
 	if err != nil {
-		log.Fatalf("processedLog open, error: %s", err.Error())
+		log.Fatalf("error starting: %s", err)
 	}
 
-	// spin up goroutines to do the work
-	var fileChan = make(chan string)
-	var conversionTotals = make(map[string]int)
-	var resultChans = make([]chan conversionResult, threads)
-	for i := 0; i < threads; i++ {
-		var results = make(chan conversionResult)
-		resultChans[i] = results
-		go conversionWorker(fileChan, results, compress, resize)
+	if compress {
+		ic.WithCompression()
 	}
 
-	// start er up
-	// totalFiles is only for non-watch
-	var totalFiles = start(watch, force, inputPath, files, tr, fileChan, processedLog)
+	if force {
+		ic.WithForce()
+	}
 
-	// wait for and process results from our worker goroutines
-	var compressedTotal, renamedTotal, resizedTotal = processAndWaitForResults(resultChans, conversionTotals, totalFiles, processedLog)
+	resizeThreshold = strings.TrimSpace(resizeThreshold)
+	if resizeThreshold != "" {
+
+		var thresholdArr = strings.Split(resizeThreshold, "x")
+		if len(thresholdArr) != 2 {
+			log.Fatalf("resize threshold not in the format: [width]x[height] e.g. 230x400, input: %s, error: %s", resizeThreshold, err)
+
+		}
+
+		var sizeArr = strings.Split(resizeSize, "x")
+		if len(sizeArr) != 2 {
+			log.Fatalf("resize size not in the format: [width]x[height] e.g. 230x400, input: %s, error: %s", sizeArr, err)
+		}
+
+		ic.WithResize(getNum(sizeArr[0]), getNum(sizeArr[1]), getNum(thresholdArr[0]), getNum(thresholdArr[1]))
+	}
+
+	if watch {
+		ic.WithWatch()
+	}
+
+	if threads > 1 {
+		ic.WithThreads(uint8(threads))
+	}
+
+	if tr.From != imageconvert.NilTime || tr.To != imageconvert.NilTime {
+		ic.WithTimeRange(tr)
+	}
+
+	compressedTotal, renamedTotal, resizedTotal, totalFiles, conversionTypeTotals, err := ic.Start(nil)
+	if err != nil {
+		log.Error(err)
+	}
 
 	log.WithFields(log.Fields{
-		"converted pngs":   conversionTotals["png"],
-		"converted webps":  conversionTotals["webp"],
+		"converted pngs":   conversionTypeTotals["png"],
+		"converted webps":  conversionTypeTotals["webp"],
 		"compressed":       compressedTotal,
 		"jpegs renamed":    renamedTotal,
 		"resized":          resizedTotal,
 		"total files seen": totalFiles,
 	}).Info("Done")
+}
 
-	err = processedLog.Close()
+func getNum(str string) uint16 {
+
+	var num, err = strconv.Atoi(str)
 	if err != nil {
-		log.Fatalf("error closing log file: %s", err.Error())
+		log.Fatalf("error resize value is not a number: %s, err: %s", str, err)
 	}
-}
-
-func start(watch, force bool, inputPath string, inputFiles []path.Entry, tr humantime.TimeRange, fileChan chan string, processedLog *os.File) int {
-
-	var totalFiles int // only relevant for non-watch mode
-
-	if watch {
-		log.Infof("watrching dir: %s", inputPath)
-		var watchEvents = make(chan path.WatchEvent)
-		var watchEventsDebounced = make(chan path.WatchEvent)
-
-		// we need to debounce file writes because fsnotify does not tell us when the file has finished being written to (closed)
-		// so if we dont debounce the WRITE events we will try to open the file before its ready.
-		go waitTilFileWritesComplete(watchEvents, watchEventsDebounced)
-
-		go func() {
-			var seenFiles = make(map[string]struct{})
-			for file := range watchEventsDebounced {
-				if _, found := seenFiles[file.Entry.AbsolutePath]; !found {
-					fileChan <- file.Entry.AbsolutePath
-					seenFiles[file.Entry.AbsolutePath] = struct{}{}
-				}
-			}
-			close(fileChan)
-		}()
-		go watchDir(inputPath, watchEvents, tr, force, processedLog)
-
-	} else {
-
-		var files = getFileList(inputFiles, tr, force, processedLog)
-		totalFiles = len(files)
-		log.Info("beginning ", len(files), " conversions")
-
-		go func() {
-			for _, file := range files {
-				fileChan <- file
-			}
-			close(fileChan)
-		}()
-	}
-
-	return totalFiles
-}
-
-// processAndWaitForResults reads the results chan which is a stream of files that have been converted by the worker.
-// The files name is added to the processed log to prevent further processing in the future as well as tallying up some stats for logging.
-func processAndWaitForResults(resultChans []chan conversionResult, conversionTypeTotals map[string]int, totalFiles int, processedLog *os.File) (int, int, int) {
-
-	var compressedTotal, renamedTotal, resizedTotal, fileCount int
-	for result := range mergeResults(resultChans...) {
-
-		fileCount++
-
-		if result.Error != nil {
-			log.Error(result.Error)
-		} else {
-
-			conversionTypeTotals[result.ImageType]++
-
-			if result.Compressed {
-				compressedTotal++
-			}
-
-			if result.Renamed {
-				renamedTotal++
-			}
-
-			if result.Resized {
-				resizedTotal++
-			}
-
-			var _, err = processedLog.WriteString(result.ConvertedFileName + "\n")
-			if err != nil {
-				log.Fatalf("error writing to log file, error: %s", err.Error())
-			}
-
-			var fields = log.Fields{
-				"original file name": result.OriginalFileName,
-				"new file name":      result.ConvertedFileName,
-				"type":               result.ImageType,
-				"compressed":         result.Compressed,
-				"progeress":          fmt.Sprintf("[%d/%d]", fileCount, totalFiles),
-				"renamed":            result.Renamed,
-				"resized":            result.Resized,
-			}
-			if result.Compressed {
-				fields["compressed output"] = result.CompressOutput
-			}
-			log.WithFields(fields).Info("Converted")
-		}
-	}
-
-	return compressedTotal, renamedTotal, resizedTotal
+	return uint16(num)
 }

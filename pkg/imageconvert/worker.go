@@ -1,4 +1,4 @@
-package main
+package imageconvert
 
 import (
 	"fmt"
@@ -6,10 +6,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/kmulvey/imageconvert/pkg/imageconvert"
+	"github.com/kmulvey/path"
 )
 
-type conversionResult struct {
+type ConversionResult struct {
 	OriginalFileName  string
 	ConvertedFileName string
 	ImageType         string
@@ -21,11 +21,11 @@ type conversionResult struct {
 }
 
 // conversionWorker reads from the file chan and does all the conversion work.
-func conversionWorker(files chan string, results chan conversionResult, compress, resize bool) {
+func (ic *ImageConverter) conversionWorker(files chan path.Entry, results chan ConversionResult) {
 	defer close(results)
 
 	for file := range files {
-		results <- convertImage(file, compress, resize)
+		results <- ic.convertImage(file)
 	}
 }
 
@@ -35,42 +35,37 @@ func conversionWorker(files chan string, results chan conversionResult, compress
 // 2. convert it to jpg
 // 3. compress it (if enabled)
 // 4. reset the mod time
-func convertImage(file string, compress, resize bool) conversionResult {
+func (ic *ImageConverter) convertImage(originalFile path.Entry) ConversionResult {
 
-	var result = conversionResult{
-		OriginalFileName: file,
-	}
-
-	var originalFileStat, err = os.Stat(file)
-	if err != nil {
-		result.Error = fmt.Errorf("error stat'ing file: %s, error: %w", file, err)
-		return result
+	var result = ConversionResult{
+		OriginalFileName: originalFile.String(),
 	}
 
 	// CONVERT IT
 	var imageType string
-	result.ConvertedFileName, imageType, err = imageconvert.Convert(file)
+	var err error
+	result.ConvertedFileName, imageType, err = Convert(originalFile.String())
 	if err != nil {
-		result.Error = fmt.Errorf("error converting image: %s, error: %w", file, err)
+		result.Error = fmt.Errorf("error converting image: %s, error: %w", originalFile, err)
 		return result
 	}
 	result.ImageType = imageType
 
 	// RESIZE IT
-	if resize {
-		resized, err := imageconvert.Resize(result.ConvertedFileName)
+	if ic.ResizeWidth > 0 && ic.ResizeHeight > 0 {
+		resized, err := ic.Resize(result.ConvertedFileName)
 		if err != nil {
-			result.Error = fmt.Errorf("error resizing image: %s, error: %w", file, err)
+			result.Error = fmt.Errorf("error resizing image: %s, error: %w", originalFile, err)
 			return result
 		}
 		result.Resized = resized
 	}
 
 	// COMPRESS IT
-	if compress {
-		compressed, stdout, err := imageconvert.CompressJPEG(85, result.ConvertedFileName)
+	if ic.Compress {
+		compressed, stdout, err := CompressJPEG(85, result.ConvertedFileName)
 		if err != nil {
-			result.Error = fmt.Errorf("error compressing image: %s, error: %w", file, err)
+			result.Error = fmt.Errorf("error compressing image: %s, error: %w", originalFile, err)
 			return result
 		}
 		result.Compressed = compressed
@@ -81,7 +76,7 @@ func convertImage(file string, compress, resize bool) conversionResult {
 	}
 
 	// make sure every file ends in ".jpg".
-	if imageconvert.RenameSuffixRegex.MatchString(filepath.Base(result.ConvertedFileName)) {
+	if RenameSuffixRegex.MatchString(filepath.Base(result.ConvertedFileName)) {
 		var renamedFile = strings.Replace(result.ConvertedFileName, filepath.Ext(result.ConvertedFileName), ".jpg", 1)
 		if err := os.Rename(result.ConvertedFileName, renamedFile); err != nil {
 			result.Error = fmt.Errorf("could rename file: %s, err: %w", result.ConvertedFileName, err)
@@ -92,7 +87,7 @@ func convertImage(file string, compress, resize bool) conversionResult {
 	}
 
 	// RESET MODTIME
-	err = os.Chtimes(result.ConvertedFileName, originalFileStat.ModTime(), originalFileStat.ModTime())
+	err = os.Chtimes(result.ConvertedFileName, originalFile.FileInfo.ModTime(), originalFile.FileInfo.ModTime())
 	if err != nil {
 		result.Error = fmt.Errorf("could not reset mod time of file: %s, err: %w", result.ConvertedFileName, err)
 		return result

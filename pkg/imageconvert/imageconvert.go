@@ -1,13 +1,12 @@
 package imageconvert
 
 import (
-	"errors"
 	"fmt"
-	"io/fs"
 	"os"
-	"time"
+	"strings"
 
 	"github.com/kmulvey/humantime"
+	"github.com/kmulvey/path"
 )
 
 type ImageConverter struct {
@@ -19,64 +18,74 @@ type ImageConverter struct {
 	ResizeHeightThreshold uint16
 	Watch                 bool
 	Threads               uint8
-	InputPath             string
+	InputEntry            path.Entry
+	InputFiles            []path.Entry
 	ProcessedLogFile      string
-	SkipMapFile           string
+	SkipMapEntry          path.Entry
+	SkipMap               map[string]struct{}
 	humantime.TimeRange
 }
 
-func NewWithDefaults(inputPath string) (ImageConverter, error) {
+func NewWithDefaults(inputPath, processedLogFile, skipMapFile string, directoryDepth uint8) (ImageConverter, error) {
 
-	if _, err := os.Stat(inputPath); errors.Is(err, fs.ErrNotExist) {
-		return ImageConverter{}, fmt.Errorf("%s does not exist", inputPath)
+	var ic = ImageConverter{
+		Threads: 1,
+	}
+	var err error
+
+	ic.InputEntry, err = path.NewEntry(inputPath, directoryDepth)
+	if err != nil {
+		return ic, err
 	}
 
-	return ImageConverter{
-		Threads:          1,
-		InputPath:        inputPath,
-		ProcessedLogFile: "./processed.log",
-	}, nil
+	ic.InputFiles, err = ic.getFileList()
+	if err != nil {
+		return ic, err
+	}
+
+	ic.SkipMap, err = ic.ParseSkipMap()
+	if err != nil {
+		return ic, err
+	}
+
+	if strings.TrimSpace(processedLogFile) != "" {
+		handle, err := os.OpenFile(processedLogFile, os.O_RDWR|os.O_CREATE, 0755)
+		if err != nil {
+			return ic, fmt.Errorf("error opening default log file: %s, err: %w", processedLogFile, err)
+		}
+		if err := handle.Close(); err != nil {
+			return ic, fmt.Errorf("error closing handle to default log file: %s, err: %w", processedLogFile, err)
+		}
+
+		ic.ProcessedLogFile = processedLogFile
+	}
+
+	return ic, nil
 }
 
-func (ic ImageConverter) WithCompression() ImageConverter {
+func (ic *ImageConverter) WithCompression() {
 	ic.Compress = true
-	return ic
 }
 
-func (ic ImageConverter) WithForce() ImageConverter {
+func (ic *ImageConverter) WithForce() {
 	ic.Force = true
-	return ic
 }
 
-func (ic ImageConverter) WithResize(width, height, widthThreshold, heightThreshold uint16) ImageConverter {
+func (ic *ImageConverter) WithResize(width, height, widthThreshold, heightThreshold uint16) {
 	ic.ResizeWidth = width
 	ic.ResizeWidthThreshold = widthThreshold
 	ic.ResizeHeight = height
 	ic.ResizeHeightThreshold = heightThreshold
-	return ic
 }
 
-func (ic ImageConverter) WithWatch() ImageConverter {
+func (ic *ImageConverter) WithWatch() {
 	ic.Watch = true
-	return ic
 }
 
-func (ic ImageConverter) WithThreads(threads uint8) ImageConverter {
+func (ic *ImageConverter) WithThreads(threads uint8) {
 	ic.Threads = threads
-	return ic
 }
 
-func (ic ImageConverter) WithProcessedLogFile(logFile string) ImageConverter {
-	ic.ProcessedLogFile = logFile
-	return ic
-}
-
-func (ic ImageConverter) WithSkipMap(skipFile string) ImageConverter {
-	ic.SkipMapFile = skipFile
-	return ic
-}
-
-func (ic ImageConverter) WithTimeRange(from, to time.Time) ImageConverter {
-	ic.TimeRange = humantime.TimeRange{From: from, To: to}
-	return ic
+func (ic *ImageConverter) WithTimeRange(tr humantime.TimeRange) {
+	ic.TimeRange = tr
 }
