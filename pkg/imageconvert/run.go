@@ -33,7 +33,7 @@ func (ic *ImageConverter) Start(results chan ConversionResult) (int, int, int, i
 			return 0, 0, 0, 0, nil, fmt.Errorf("unable to open processed log file: %s, err: %w", ic.ProcessedLogFile, err)
 		}
 
-		go func() { // are these totals scoped correctly?
+		go func() {
 			compressedTotal, renamedTotal, resizedTotal = processAndWaitForResults(resultChans, conversionTypeTotals, len(ic.InputFiles), processedLogHanlde)
 			close(waitForResultsToBeCollected)
 		}()

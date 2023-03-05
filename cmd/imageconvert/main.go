@@ -30,8 +30,8 @@ func main() {
 	flag.StringVar(&inputPath, "path", "", "path to files, globbing must be quoted")
 	flag.StringVar(&processedLogFile, "processed-file", "processed.log", "the file to write processes images to, so that we dont processes them again next time")
 	flag.StringVar(&skipMapFile, "skip-file", "processed.log", "the file to write processes images to, so that we dont processes them again next time")
-	flag.StringVar(&resizeThreshold, "resize-threshold", "", "the min size to consider for resizing in the formate [width]x[height] e.g. 230x400")
-	flag.StringVar(&resizeSize, "resize-size", "", "the size to resize the images to while preserving the aspect ratio [width]x[height] e.g. 230x400")
+	flag.StringVar(&resizeThreshold, "resize-threshold", "2560x1440", "the min size to consider for resizing in the formate [width]x[height] e.g. 230x400")
+	flag.StringVar(&resizeSize, "resize-size", "5120x2880", "the size to resize the images to while preserving the aspect ratio [width]x[height] e.g. 230x400")
 	flag.IntVar(&threads, "threads", 1, "number of threads to use")
 	flag.IntVar(&directoryDepth, "depth", 1, "number levels to search directories for images")
 	flag.Var(&tr, "time-range", "process files chnaged since this time")
@@ -63,13 +63,6 @@ func main() {
 	}
 
 	log.Infof("Config: dir: %s, log file: %s, compress: %t, force: %t, watch: %t, threads: %d, modified-since: %s", inputPath, processedLogFile, compress, force, watch, threads, tr)
-
-	// DELETE
-	inputPath = "~/scratch/"
-	compress = true
-	resizeThreshold = "1000x1000"
-	resizeSize = "2000x2000"
-	watch = true
 
 	var ic, err = imageconvert.NewWithDefaults(inputPath, processedLogFile, skipMapFile, uint8(directoryDepth))
 	if err != nil {
