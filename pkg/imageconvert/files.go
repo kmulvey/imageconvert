@@ -13,6 +13,7 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/kmulvey/path"
+	log "github.com/sirupsen/logrus"
 )
 
 // ImageExtensionRegex captures file extensions we can work with.
@@ -120,7 +121,7 @@ func (ic *ImageConverter) watchDir(files chan path.WatchEvent) {
 func waitTilFileWritesComplete(eventsIn, eventsOut chan path.WatchEvent) {
 
 	var cache = make(map[string]TimeOfEntry)
-	var ticker = time.NewTicker(200 * time.Millisecond)
+	var ticker = time.NewTicker(time.Second)
 
 	for {
 		select {
@@ -135,11 +136,45 @@ func waitTilFileWritesComplete(eventsIn, eventsOut chan path.WatchEvent) {
 		case <-ticker.C:
 
 			for filename, entry := range cache {
-				if time.Since(entry.Time) > 6*time.Second { // this is a long time because large files take a while to get written to spinning rust
+				if hasEOI(filename) {
 					eventsOut <- entry.WatchEvent
 					delete(cache, filename)
 				}
 			}
 		}
 	}
+}
+
+// hasEOI looks for the End of Image marker at the end of the file. Im not crazy about logging these errors
+// but also kinda dont want to bubble them up either. Something to reconsider in the future.
+func hasEOI(filepath string) bool {
+
+	var file, err = os.Open(filepath)
+	if err != nil {
+		log.Errorf("error opening file: %s", err)
+		return false
+	}
+	defer file.Close()
+
+	buf := make([]byte, 2)
+
+	stat, err := os.Stat(filepath)
+	if err != nil {
+		log.Errorf("error opening file: %s", err)
+		return false
+	}
+
+	start := stat.Size() - 2
+
+	_, err = file.ReadAt(buf, start)
+	if err != nil {
+		log.Errorf("error opening file: %s", err)
+		return false
+	}
+
+	if buf[0] == 0xFF && buf[1] == 0xD9 {
+		return true
+	}
+
+	return false
 }
