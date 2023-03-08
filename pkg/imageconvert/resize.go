@@ -12,7 +12,7 @@ import (
 func (ic *ImageConverter) Resize(filename string) (bool, error) {
 
 	// open file
-	file, err := os.Open(filename)
+	file, err := os.OpenFile(filename, os.O_RDONLY, 0755)
 	if err != nil {
 		return false, fmt.Errorf("error opening file for resizing: %w", err)
 	}
@@ -38,7 +38,10 @@ func (ic *ImageConverter) Resize(filename string) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("error decoding image for resizing: %w", err)
 	}
-	file.Close()
+	err = file.Close()
+	if err != nil {
+		return false, fmt.Errorf("error closing original image file: %w", err)
+	}
 
 	// preserve aspect ratio
 	var resizedImage image.Image

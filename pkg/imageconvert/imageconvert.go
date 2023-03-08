@@ -20,13 +20,12 @@ type ImageConverter struct {
 	Threads               uint8
 	InputEntry            path.Entry
 	InputFiles            []path.Entry
-	ProcessedLogFile      string
 	SkipMapEntry          path.Entry
 	SkipMap               map[string]struct{}
 	humantime.TimeRange
 }
 
-func NewWithDefaults(inputPath, processedLogFile, skipMapFile string, directoryDepth uint8) (ImageConverter, error) {
+func NewWithDefaults(inputPath, skipFile string, directoryDepth uint8) (ImageConverter, error) {
 
 	var ic = ImageConverter{
 		Threads: 1,
@@ -38,27 +37,32 @@ func NewWithDefaults(inputPath, processedLogFile, skipMapFile string, directoryD
 		return ic, err
 	}
 
+	if strings.TrimSpace(skipFile) != "" {
+		handle, err := os.OpenFile(skipFile, os.O_RDWR|os.O_CREATE, 0755)
+		if err != nil {
+			return ic, fmt.Errorf("error opening skip file: %s, err: %w", skipFile, err)
+		}
+		if err := handle.Close(); err != nil {
+			return ic, fmt.Errorf("error closing handle to skip file: %s, err: %w", skipFile, err)
+		}
+
+		ic.SkipMapEntry, err = path.NewEntry(skipFile, 0)
+		if err != nil {
+			return ic, fmt.Errorf("error opening skip file: %s, err: %w", skipFile, err)
+		}
+	}
+
 	ic.InputFiles, err = ic.getFileList()
 	if err != nil {
 		return ic, err
 	}
 
-	ic.SkipMap, err = ic.ParseSkipMap()
-	if err != nil {
-		return ic, err
-	}
-
-	if strings.TrimSpace(processedLogFile) != "" {
-		handle, err := os.OpenFile(processedLogFile, os.O_RDWR|os.O_CREATE, 0755)
-		if err != nil {
-			return ic, fmt.Errorf("error opening default log file: %s, err: %w", processedLogFile, err)
-		}
-		if err := handle.Close(); err != nil {
-			return ic, fmt.Errorf("error closing handle to default log file: %s, err: %w", processedLogFile, err)
-		}
-
-		ic.ProcessedLogFile = processedLogFile
-	}
+	// fmt.Println(len(ic.InputFiles))
+	// os.Exit(0)
+	// ic.SkipMap, err = ic.ParseSkipMap()
+	// if err != nil {
+	// 	return ic, err
+	// }
 
 	return ic, nil
 }

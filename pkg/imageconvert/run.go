@@ -21,6 +21,8 @@ func (ic *ImageConverter) Start(results chan ConversionResult) (int, int, int, i
 	var compressedTotal, renamedTotal, resizedTotal int
 	var conversionTypeTotals = make(map[string]int)
 	var waitForResultsToBeCollected = make(chan struct{})
+	var processedLogHanlde *os.File
+	var err error
 
 	// handle how results are processed, give them to the caller or log them
 	if results != nil {
@@ -28,9 +30,9 @@ func (ic *ImageConverter) Start(results chan ConversionResult) (int, int, int, i
 			results <- result
 		}
 	} else {
-		var processedLogHanlde, err = os.OpenFile(ic.ProcessedLogFile, os.O_RDWR|os.O_CREATE, 0755)
+		processedLogHanlde, err = os.OpenFile(ic.SkipMapEntry.String(), os.O_RDWR|os.O_APPEND|os.O_CREATE, 0755)
 		if err != nil {
-			return 0, 0, 0, 0, nil, fmt.Errorf("unable to open processed log file: %s, err: %w", ic.ProcessedLogFile, err)
+			return 0, 0, 0, 0, nil, fmt.Errorf("unable to open processed log file: %s, err: %w", ic.SkipMapEntry.String(), err)
 		}
 
 		go func() {
@@ -48,7 +50,7 @@ func (ic *ImageConverter) Start(results chan ConversionResult) (int, int, int, i
 
 	<-waitForResultsToBeCollected
 
-	return compressedTotal, renamedTotal, resizedTotal, len(ic.InputFiles), conversionTypeTotals, nil
+	return compressedTotal, renamedTotal, resizedTotal, len(ic.InputFiles), conversionTypeTotals, processedLogHanlde.Close()
 }
 
 // processAndWaitForResults reads the results chan which is a stream of files that have been converted by the worker.
@@ -80,7 +82,7 @@ func processAndWaitForResults(resultChans []chan ConversionResult, conversionTyp
 
 			var _, err = processedLog.WriteString(result.ConvertedFileName + "\n")
 			if err != nil {
-				log.Fatalf("error writing to log file, error: %s", err.Error())
+				log.Fatalf("error writing to log file, error: %s", err.Error()) // TODO remove logFatal
 			}
 
 			var fields = log.Fields{

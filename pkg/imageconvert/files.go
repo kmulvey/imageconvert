@@ -35,7 +35,7 @@ var NilTime = time.Time{}
 // If you want to reprocess, just delete the file
 func (ic *ImageConverter) ParseSkipMap() (map[string]struct{}, error) {
 
-	var processedImages, err = os.Open(ic.SkipMapEntry.String())
+	var processedImages, err = os.OpenFile(ic.SkipMapEntry.String(), os.O_RDONLY, 0755)
 	if err != nil && errors.Is(err, fs.ErrNotExist) {
 		return make(map[string]struct{}), nil
 	} else if err != nil {
@@ -50,7 +50,7 @@ func (ic *ImageConverter) ParseSkipMap() (map[string]struct{}, error) {
 		compressedFiles[scanner.Text()] = struct{}{}
 	}
 
-	return compressedFiles, nil
+	return compressedFiles, processedImages.Close()
 }
 
 // getFileList filters the file list
@@ -149,7 +149,7 @@ func waitTilFileWritesComplete(eventsIn, eventsOut chan path.WatchEvent) {
 // but also kinda dont want to bubble them up either. Something to reconsider in the future.
 func hasEOI(filepath string) bool {
 
-	var file, err = os.Open(filepath)
+	var file, err = os.OpenFile(filepath, os.O_RDONLY, 0755)
 	if err != nil {
 		log.Errorf("error opening file: %s", err)
 		return false
