@@ -20,7 +20,7 @@ func (ic *ImageConverter) Start(results chan ConversionResult) (int, int, int, i
 	// variables only for slice mode, these variables are returned so totals can be printed by the caller
 	var compressedTotal, renamedTotal, resizedTotal int
 	var conversionTypeTotals = make(map[string]int)
-	var waitForResultsToBeCollected = make(chan struct{})
+	var processAndWaitErrors = make(chan error)
 	var processedLogHanlde *os.File
 	var err error
 
@@ -36,8 +36,11 @@ func (ic *ImageConverter) Start(results chan ConversionResult) (int, int, int, i
 		}
 
 		go func() {
-			compressedTotal, renamedTotal, resizedTotal = processAndWaitForResults(resultChans, conversionTypeTotals, len(ic.InputFiles), processedLogHanlde)
-			close(waitForResultsToBeCollected)
+			compressedTotal, renamedTotal, resizedTotal, err = processAndWaitForResults(resultChans, conversionTypeTotals, len(ic.InputFiles), processedLogHanlde)
+			if err != nil {
+				processAndWaitErrors <- err
+			}
+			close(processAndWaitErrors)
 		}()
 	}
 
@@ -45,17 +48,19 @@ func (ic *ImageConverter) Start(results chan ConversionResult) (int, int, int, i
 	if ic.Watch {
 		ic.startWatch(resultChans...)
 	} else {
-		ic.startSlice(resultChans...)
+		go ic.startSlice(resultChans...)
 	}
 
-	<-waitForResultsToBeCollected
+	if err := <-processAndWaitErrors; err != nil {
+		return 0, 0, 0, 0, nil, err
+	}
 
 	return compressedTotal, renamedTotal, resizedTotal, len(ic.InputFiles), conversionTypeTotals, processedLogHanlde.Close()
 }
 
 // processAndWaitForResults reads the results chan which is a stream of files that have been converted by the worker.
 // The files name is added to the processed log to prevent further processing in the future as well as tallying up some stats for logging.
-func processAndWaitForResults(resultChans []chan ConversionResult, conversionTypeTotals map[string]int, totalFiles int, processedLog *os.File) (int, int, int) {
+func processAndWaitForResults(resultChans []chan ConversionResult, conversionTypeTotals map[string]int, totalFiles int, processedLog *os.File) (int, int, int, error) {
 
 	var compressedTotal, renamedTotal, resizedTotal, fileCount int
 	for result := range goutils.MergeChannels(resultChans...) {
@@ -82,7 +87,7 @@ func processAndWaitForResults(resultChans []chan ConversionResult, conversionTyp
 
 			var _, err = processedLog.WriteString(result.ConvertedFileName + "\n")
 			if err != nil {
-				log.Fatalf("error writing to log file, error: %s", err.Error()) // TODO remove logFatal
+				return 0, 0, 0, fmt.Errorf("error writing to log file, error: %w", err)
 			}
 
 			var fields = log.Fields{
@@ -101,7 +106,7 @@ func processAndWaitForResults(resultChans []chan ConversionResult, conversionTyp
 		}
 	}
 
-	return compressedTotal, renamedTotal, resizedTotal
+	return compressedTotal, renamedTotal, resizedTotal, nil
 }
 
 // startWatch flow:
