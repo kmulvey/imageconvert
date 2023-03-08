@@ -29,7 +29,7 @@ func main() {
 		return
 	}
 
-	originalFile, err := os.Open(inputPath.AbsolutePath)
+	originalFile, err := os.OpenFile(inputPath.String(), os.O_RDONLY, 0755)
 	if err != nil {
 		log.Error(err)
 		return
