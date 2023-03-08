@@ -26,7 +26,7 @@ func Convert(inputFile string) (string, string, error) {
 	var ext = filepath.Ext(inputFile)
 	var convertedFile = strings.Replace(inputFile, ext, ".jpg", 1)
 
-	var origFile, err = os.Open(inputFile)
+	var origFile, err = os.OpenFile(inputFile, os.O_RDONLY, 0755)
 	if err != nil {
 		return "", "", fmt.Errorf("error opening file for conversion, image: %s, error: %s", inputFile, err.Error())
 	}
