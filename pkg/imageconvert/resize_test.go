@@ -21,5 +21,18 @@ func TestResize(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, resized)
 
+	resized, err = ic.Resize("noexist")
+	assert.Error(t, err)
+	assert.False(t, resized)
+
+	resized, err = ic.Resize("./compress.go")
+	assert.Error(t, err)
+	assert.False(t, resized)
+
+	ic.WithResize(2000, 1000, 3000, 2000)
+	resized, err = ic.Resize(testImage)
+	assert.NoError(t, err)
+	assert.False(t, resized)
+
 	assert.NoError(t, os.RemoveAll(testdir))
 }
