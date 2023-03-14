@@ -37,6 +37,7 @@ func (ic *ImageConverter) ParseSkipMap() (map[string]struct{}, error) {
 
 	var processedImages, err = os.OpenFile(ic.SkipMapEntry.String(), os.O_RDONLY, 0755)
 	if err != nil && errors.Is(err, fs.ErrNotExist) {
+		// if the file doesnt exist its not really an error so we just return an empty map
 		return make(map[string]struct{}), nil
 	} else if err != nil {
 		return nil, fmt.Errorf("unable to open skipMap file: %w", err)

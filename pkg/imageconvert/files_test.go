@@ -30,6 +30,45 @@ func TestParseSkipMap(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(skipMap))
 
+	ic.SkipMapEntry.AbsolutePath = ""
+	skipMap, err = ic.ParseSkipMap()
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(skipMap))
+
+	// this is what will create the error in ParseSkipMap
+	ic.SkipMapEntry.AbsolutePath = filepath.Join(testdir, "skipFile")
+	err = os.Chmod(filepath.Join(testdir, "skipFile"), 0000)
+	assert.NoError(t, err)
+	skipMap, err = ic.ParseSkipMap()
+	assert.Error(t, err)
+	assert.Nil(t, skipMap)
+
+	assert.NoError(t, os.RemoveAll(testdir))
+}
+
+func TestGetFileList(t *testing.T) {
+	t.Parallel()
+
+	// setup
+	var testdir = makeTestDir(t)
+	var handle, err = os.OpenFile(filepath.Join(testdir, "skipFile"), os.O_RDWR|os.O_CREATE, 0755)
+	assert.NoError(t, err)
+	_, err = handle.WriteString("realjpg.jpg")
+	assert.NoError(t, err)
+	err = handle.Close()
+	assert.NoError(t, err)
+
+	ic, err := NewWithDefaults(testdir, filepath.Join(testdir, "skipFile"), 0)
+	assert.NoError(t, err)
+
+	// this is what will create the error in getFileList
+	err = os.Chmod(filepath.Join(testdir, "skipFile"), 0000)
+	assert.NoError(t, err)
+
+	entries, err := ic.getFileList()
+	assert.Error(t, err)
+	assert.Equal(t, 0, len(entries))
+
 	assert.NoError(t, os.RemoveAll(testdir))
 }
 
