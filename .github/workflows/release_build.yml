@@ -19,20 +19,15 @@ jobs:
         with:
           check-latest: true
           cache: true
-          go-version: '1.20'
-          
+          go-version: 1.19
+        id: go
+
       - name: install deps
         uses: ConorMacBride/install-package@v1
         with:
           brew: jpegoptim imagemagick
           apt: jpegoptim imagemagick
           choco: jpegoptim ImageMagick
-
-      - name: Build & Test
-        run: |
-          go mod tidy
-          go build -v -ldflags="-s -w" ./...
-          go test -v -race -count 1 -parallel 5 -covermode=atomic -coverprofile=coverage.out ./...
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
@@ -41,10 +36,13 @@ jobs:
           args: --timeout=5m
 
       - name: Govulncheck
-        uses: kmulvey/govulncheck-action@v1.1.2
+        uses: kmulvey/govulncheck-action@v1.0.0
 
-      - name: find coverage
-        run: ls -al
+      - name: Build & Test
+        run: |
+          go mod tidy
+          go test -v -race -count 1 -parallel 5 -covermode=atomic -coverprofile=coverage.out ./...
+          go build -v -ldflags="-s -w" ./...
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3  
@@ -64,9 +62,10 @@ jobs:
       - name: Set up Go 
         uses: actions/setup-go@v3
         with:
+          go-version: 1.19
           check-latest: true
           cache: true
-          go-version: '1.20'
+        id: go
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v3
