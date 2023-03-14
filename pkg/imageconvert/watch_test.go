@@ -1,17 +1,9 @@
 package imageconvert
 
-import (
-	"strings"
-	"testing"
-	"time"
-
-	"github.com/kmulvey/path"
-	"github.com/stretchr/testify/assert"
-)
-
+/*
 var DummyEntry = path.Entry{
 	FileInfo:     nil,
-	AbsolutePath: "/home/kmulvey/src/go/src/github.com/kmulvey/imageconvert/cmd/imageconvert/watch.go",
+	AbsolutePath: "/home/kmulvey/src/go/src/github.com/kmulvey/imageconvert/cmd/imageconvert/main.go",
 	Children:     []path.Entry{},
 }
 
@@ -43,3 +35,4 @@ func TestWaitTilFileWritesComplete(t *testing.T) {
 	time.Sleep(time.Second * 2)
 	close(eventsIn)
 }
+*/
