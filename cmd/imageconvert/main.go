@@ -6,6 +6,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/kmulvey/humantime"
 	"github.com/kmulvey/imageconvert/pkg/imageconvert"
@@ -17,7 +18,7 @@ import (
 func main() {
 	log.SetFormatter(&log.TextFormatter{
 		FullTimestamp:   true,
-		TimestampFormat: "15:04:05",
+		TimestampFormat: time.TimeOnly, // "15:04:05",
 	})
 
 	// get the user options
