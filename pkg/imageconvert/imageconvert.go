@@ -57,13 +57,6 @@ func NewWithDefaults(inputPath, skipFile string, directoryDepth uint8) (ImageCon
 		return ic, err
 	}
 
-	// fmt.Println(len(ic.InputFiles))
-	// os.Exit(0)
-	// ic.SkipMap, err = ic.ParseSkipMap()
-	// if err != nil {
-	// 	return ic, err
-	// }
-
 	return ic, nil
 }
 
