@@ -81,13 +81,17 @@ func TestHasEOI(t *testing.T) {
 	assert.True(t, hasEOI(testImage))
 	assert.False(t, hasEOI("./compress.go"))
 	assert.False(t, hasEOI("./doesnotexist"))
+
 	assert.NoError(t, os.RemoveAll(testdir))
 }
 
 func TestWaitTilFileWritesComplete(t *testing.T) {
 	t.Parallel()
 
-	var fileAbs, err = filepath.Abs("./convert.go")
+	// setup
+	var testdir = makeTestDir(t)
+	var testImage = moveImage(t, testdir, testPair{Name: "./testimages/realjpg.jpg", Type: "jpeg"})
+	var fileAbs, err = filepath.Abs(testImage)
 	assert.NoError(t, err)
 
 	var DummyEntry = path.Entry{
@@ -114,12 +118,13 @@ func TestWaitTilFileWritesComplete(t *testing.T) {
 
 	go func() {
 		for e := range eventsOut {
-			assert.True(t, strings.HasSuffix(e.Entry.AbsolutePath, "watch.go"))
+			assert.True(t, strings.HasSuffix(e.Entry.AbsolutePath, "realjpg.jpg"))
 		}
 	}()
 
 	time.Sleep(time.Second * 2)
 	close(eventsIn)
+	assert.NoError(t, os.RemoveAll(testdir))
 }
 
 func TestEscapeFilePath(t *testing.T) {
