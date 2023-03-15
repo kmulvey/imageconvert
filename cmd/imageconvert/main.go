@@ -90,7 +90,7 @@ func main() {
 			log.Fatalf("resize size not in the format: [width]x[height] e.g. 230x400, input: %s, error: %s", sizeArr, err)
 		}
 
-		ic.WithResize(getNum(sizeArr[0]), getNum(sizeArr[1]), getNum(thresholdArr[0]), getNum(thresholdArr[1]))
+		ic.WithResize(getResizeValue(sizeArr[0]), getResizeValue(sizeArr[1]), getResizeValue(thresholdArr[0]), getResizeValue(thresholdArr[1]))
 	}
 
 	if watch {
@@ -120,11 +120,11 @@ func main() {
 	}).Info("Done")
 }
 
-func getNum(str string) uint16 {
+func getResizeValue(str string) uint16 {
 
-	var num, err = strconv.ParseUint(str, 10, 16)
-	if err == nil {
-		log.Fatalf("error resize value is not a number: %s, err: %s", str, err)
+	var num, err = strconv.ParseUint(str, 10, 32)
+	if err != nil {
+		log.Fatalf("error resize value is not a number: '%s', err: %s", str, err.Error())
 	}
 
 	return uint16(num)
