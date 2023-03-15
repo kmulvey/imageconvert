@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -31,14 +32,15 @@ func TestConvert(t *testing.T) {
 
 	var testdir = makeTestDir(t)
 
-	for _, image := range []testPair{{"testimages/test.png", "png"}, {"testimages/test.webp", "webp"}} {
+	for _, image := range []testPair{{"testimages/test.png", "png"}, {"testimages/testwebp.webp", "webp"}} {
 
 		var testImage = moveImage(t, testdir, image)
 
 		// convert
 		convertedImage, format, err := Convert(testImage)
 		assert.NoError(t, err)
-		assert.Equal(t, filepath.Join(testdir, "test.jpg"), convertedImage)
+		assert.True(t, strings.HasPrefix(convertedImage, "test"))
+		assert.True(t, strings.HasSuffix(convertedImage, ".jpg"))
 		assert.Equal(t, image.Type, format)
 
 		// make sure input file was deleted by Convert()

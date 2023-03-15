@@ -3,6 +3,7 @@ package imageconvert
 import (
 	"io"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"testing"
@@ -18,7 +19,9 @@ type testPair struct {
 
 func makeTestDir(t *testing.T) string {
 	var testdir = "testdir_" + goutils.RandomString(5)
-	var err = os.Mkdir(testdir, os.ModePerm)
+
+	var cmd = exec.Command("cp", "-r", "testimages/", testdir)
+	var err = cmd.Run()
 	assert.NoError(t, err)
 
 	return testdir

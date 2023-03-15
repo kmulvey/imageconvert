@@ -16,7 +16,7 @@ func TestConvertImage(t *testing.T) {
 
 	// setup
 	var testdir = makeTestDir(t)
-	var testImage = moveImage(t, testdir, testPair{Name: "./testimages/test.webp", Type: "jpeg"})
+	var testImage = moveImage(t, testdir, testPair{Name: "./testimages/testwebp.webp", Type: "jpeg"})
 	var ic, err = NewWithDefaults(testImage, "", 0)
 	ic.WithCompression()
 	ic.WithResize(200, 100, 300, 200)
@@ -28,8 +28,8 @@ func TestConvertImage(t *testing.T) {
 	var cr = ic.convertImage(originalFile)
 	assert.NoError(t, cr.Error)
 	assert.NoError(t, err)
-	assert.True(t, strings.HasSuffix(cr.OriginalFileName, "test.webp"))
-	assert.True(t, strings.HasSuffix(cr.ConvertedFileName, "test.jpg"))
+	assert.True(t, strings.HasSuffix(cr.OriginalFileName, "testwebp.webp"))
+	assert.True(t, strings.HasSuffix(cr.ConvertedFileName, "testwebp.jpg"))
 	assert.Equal(t, "webp", cr.ImageType)
 	assert.True(t, cr.Compressed)
 	assert.False(t, cr.Renamed)
