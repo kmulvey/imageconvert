@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/kmulvey/goutils"
 	"github.com/kmulvey/humantime"
 	"github.com/kmulvey/path"
 )
@@ -23,12 +24,15 @@ type ImageConverter struct {
 	SkipMapEntry          path.Entry
 	SkipMap               map[string]struct{}
 	humantime.TimeRange
+	ShutdownTrigger   chan struct{}
+	ShutdownCompleted []chan struct{}
 }
 
 func NewWithDefaults(inputPath, skipFile string, directoryDepth uint8) (ImageConverter, error) {
 
 	var ic = ImageConverter{
-		Threads: 1,
+		Threads:           1,
+		ShutdownCompleted: make([]chan struct{}, 1),
 	}
 	var err error
 
@@ -37,19 +41,21 @@ func NewWithDefaults(inputPath, skipFile string, directoryDepth uint8) (ImageCon
 		return ic, err
 	}
 
-	if strings.TrimSpace(skipFile) != "" {
-		handle, err := os.OpenFile(skipFile, os.O_RDWR|os.O_CREATE, 0755)
-		if err != nil {
-			return ic, fmt.Errorf("error opening skip file: %s, err: %w", skipFile, err)
-		}
-		if err := handle.Close(); err != nil {
-			return ic, fmt.Errorf("error closing handle to skip file: %s, err: %w", skipFile, err)
-		}
+	if strings.TrimSpace(skipFile) == "" {
+		skipFile = "processed.log"
+	}
 
-		ic.SkipMapEntry, err = path.NewEntry(skipFile, 0)
-		if err != nil {
-			return ic, fmt.Errorf("error opening skip file: %s, err: %w", skipFile, err)
-		}
+	handle, err := os.OpenFile(skipFile, os.O_RDWR|os.O_CREATE, 0755)
+	if err != nil {
+		return ic, fmt.Errorf("error opening skip file: %s, err: %w", skipFile, err)
+	}
+	if err := handle.Close(); err != nil {
+		return ic, fmt.Errorf("error closing handle to skip file: %s, err: %w", skipFile, err)
+	}
+
+	ic.SkipMapEntry, err = path.NewEntry(skipFile, 0)
+	if err != nil {
+		return ic, fmt.Errorf("error opening skip file: %s, err: %w", skipFile, err)
 	}
 
 	ic.InputFiles, err = ic.getFileList()
@@ -58,6 +64,11 @@ func NewWithDefaults(inputPath, skipFile string, directoryDepth uint8) (ImageCon
 	}
 
 	return ic, nil
+}
+
+func (ic *ImageConverter) Shutdown() {
+	close(ic.ShutdownTrigger)
+	<-goutils.MergeChannels(ic.ShutdownCompleted...)
 }
 
 func (ic *ImageConverter) WithCompression() {
@@ -81,6 +92,7 @@ func (ic *ImageConverter) WithWatch() {
 
 func (ic *ImageConverter) WithThreads(threads uint8) {
 	ic.Threads = threads
+	ic.ShutdownCompleted = make([]chan struct{}, threads)
 }
 
 func (ic *ImageConverter) WithTimeRange(tr humantime.TimeRange) {

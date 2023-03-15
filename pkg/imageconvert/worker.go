@@ -21,11 +21,22 @@ type ConversionResult struct {
 }
 
 // conversionWorker reads from the file chan and does all the conversion work.
-func (ic *ImageConverter) conversionWorker(files chan path.Entry, results chan ConversionResult) {
+func (ic *ImageConverter) conversionWorker(files chan path.Entry, results chan ConversionResult, done chan struct{}) {
 	defer close(results)
+	defer close(done)
 
-	for file := range files {
-		results <- ic.convertImage(file)
+	for {
+		select {
+		case _, open := <-ic.ShutdownTrigger:
+			if !open {
+				return
+			}
+		case file, open := <-files:
+			if !open {
+				return
+			}
+			results <- ic.convertImage(file)
+		}
 	}
 }
 

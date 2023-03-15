@@ -120,7 +120,9 @@ func (ic *ImageConverter) startWatch(resultChans ...chan ConversionResult) {
 	var conversionChan = make(chan path.Entry)
 	var i uint8
 	for i = 0; i < ic.Threads; i++ {
-		go ic.conversionWorker(conversionChan, resultChans[i])
+		var done = make(chan struct{})
+		go ic.conversionWorker(conversionChan, resultChans[i], done)
+		ic.ShutdownCompleted[i] = done
 	}
 
 	log.Infof("watrching dir: %s", ic.InputEntry.String())
@@ -156,7 +158,9 @@ func (ic *ImageConverter) startSlice(resultChans ...chan ConversionResult) {
 	var conversionChan = make(chan path.Entry)
 	var i uint8
 	for i = 0; i < ic.Threads; i++ {
-		go ic.conversionWorker(conversionChan, resultChans[i])
+		var done = make(chan struct{})
+		go ic.conversionWorker(conversionChan, resultChans[i], done)
+		ic.ShutdownCompleted[i] = done
 	}
 
 	log.Info("beginning ", len(ic.InputFiles), " conversions")
