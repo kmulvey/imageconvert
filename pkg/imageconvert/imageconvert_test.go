@@ -44,3 +44,27 @@ func TestNewWithDefaults(t *testing.T) {
 
 	assert.NoError(t, os.RemoveAll(testdir))
 }
+
+func TestStartSlice(t *testing.T) {
+	t.Parallel()
+
+	// setup
+	var testdir = makeTestDir(t)
+
+	var ic, err = NewWithDefaults(testdir, "", 1)
+	assert.NoError(t, err)
+	assert.Equal(t, uint8(1), ic.Threads)
+	ic.WithCompression()
+
+	compressedTotal, renamedTotal, resizedTotal, totalFiles, conversionTypeTotals, err := ic.Start(nil)
+	assert.NoError(t, err)
+
+	assert.Equal(t, 3, compressedTotal)
+	assert.Equal(t, 0, renamedTotal)
+	assert.Equal(t, 0, resizedTotal)
+	assert.Equal(t, 4, totalFiles)
+	assert.EqualValues(t, map[string]int{"jpeg": 1, "png": 1, "webp": 1}, conversionTypeTotals)
+
+	assert.NoError(t, os.RemoveAll("processed.log"))
+	assert.NoError(t, os.RemoveAll(testdir))
+}
