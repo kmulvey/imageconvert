@@ -122,7 +122,7 @@ func main() {
 
 func getResizeValue(str string) uint16 {
 
-	var num, err = strconv.ParseUint(str, 10, 32)
+	var num, err = strconv.ParseUint(str, 10, 16)
 	if err != nil {
 		log.Fatalf("error resize value is not a number: '%s', err: %s", str, err.Error())
 	}
