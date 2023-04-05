@@ -28,14 +28,15 @@ jobs:
           apt: jpegoptim imagemagick
           choco: jpegoptim ImageMagick
 
-      - name: Build & Test
+      - name: Build
         run: |
           go clean -r ./...
           go mod tidy
           go build -v -ldflags="-s -w" ./...
-          if [ "$RUNNER_OS" != "Windows" ]; then
-            go test -v -race -count 1 -parallel 5 -covermode=atomic -coverprofile="coverage.out" ./...
-          fi
+
+      - name: Test
+        if: ${{ env.RUNNER_OS != 'Windows' }}
+        run: go test -v -race -count 1 -parallel 5 -covermode=atomic -coverprofile="coverage.out" ./...
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
