@@ -33,6 +33,7 @@ jobs:
           go clean -r ./...
           go mod tidy
           go build -v -ldflags="-s -w" ./...
+          echo "$RUNNER_OS"
 
       - name: Test
         if: ${{ env.RUNNER_OS != 'Windows' }}
