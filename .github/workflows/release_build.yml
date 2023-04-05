@@ -33,13 +33,10 @@ jobs:
           go clean -r ./...
           go mod tidy
           go build -v -ldflags="-s -w" ./...
-          echo "$RUNNER_OS"
 
       - name: Test
-        if: ${{ env.RUNNER_OS != 'Windows' }}
-        run: |
-          echo "$RUNNER_OS"
-          #go test -v -race -count 1 -parallel 5 -covermode=atomic -coverprofile="coverage.out" ./...
+        if: ${{ env.RUNNER_OS == 'macOS' || env.RUNNER_OS == 'Linux' }}
+        run: go test -v -race -count 1 -parallel 5 -covermode=atomic -coverprofile="coverage.out" ./...
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
