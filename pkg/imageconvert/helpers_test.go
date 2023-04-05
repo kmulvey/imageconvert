@@ -3,10 +3,11 @@ package imageconvert
 import (
 	"io"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"testing"
+
+	cp "github.com/otiai10/copy"
 
 	"github.com/kmulvey/goutils"
 	"github.com/stretchr/testify/assert"
@@ -19,10 +20,9 @@ type testPair struct {
 
 func makeTestDir(t *testing.T) string {
 	var testdir = "testdir_" + goutils.RandomString(5)
+	assert.NoError(t, os.MkdirAll(testdir, os.ModePerm))
 
-	var cmd = exec.Command("cp", "-r", "testimages/", testdir)
-	var err = cmd.Run()
-	assert.NoError(t, err)
+	assert.NoError(t, cp.Copy("testimages", testdir))
 
 	return testdir
 }
