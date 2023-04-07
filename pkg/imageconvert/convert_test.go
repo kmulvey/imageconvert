@@ -2,7 +2,6 @@ package imageconvert
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -17,7 +16,7 @@ func TestConvertErrors(t *testing.T) {
 	var convertedImage, format, err = Convert("testImage")
 	assert.Equal(t, "", convertedImage)
 	assert.Equal(t, "", format)
-	assert.Equal(t, "error opening file for conversion, image: testImage, error: open testImage: no such file or directory", err.Error())
+	assert.True(t, strings.Contains(err.Error(), "error opening file for conversion, image: testImage, error: open testImage:"))
 
 	assert.NoError(t, os.WriteFile("testImage", make([]byte, 100), os.ModePerm))
 	convertedImage, format, err = Convert("testImage")
@@ -50,10 +49,6 @@ func TestConvert(t *testing.T) {
 
 		// make sure the converted file really exists
 		_, err = os.Stat(convertedImage)
-		assert.NoError(t, err)
-
-		// clean up
-		err = os.Remove(convertedImage)
 		assert.NoError(t, err)
 	}
 	assert.NoError(t, os.RemoveAll(testdir))
@@ -108,7 +103,7 @@ func TestConvertWouldOverwrite(t *testing.T) {
 	// do it again
 	moveImage(t, testdir, image)
 	convertedImage, format, err = Convert(testImage)
-	assert.Equal(t, fmt.Sprintf("converting %s/test.png would overwrite an existing jpeg, skipping", testdir), err.Error())
+	assert.True(t, strings.Contains(err.Error(), "test.png would overwrite an existing jpeg, skipping"))
 	assert.Equal(t, filepath.Join(testdir, "test.png"), convertedImage)
 	assert.Equal(t, "", format)
 

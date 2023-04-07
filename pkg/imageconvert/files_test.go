@@ -1,12 +1,14 @@
 package imageconvert
 
 import (
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/hectane/go-acl"
 	"github.com/kmulvey/path"
 	"github.com/stretchr/testify/assert"
 )
@@ -37,12 +39,13 @@ func TestParseSkipMap(t *testing.T) {
 
 	// this is what will create the error in ParseSkipMap
 	ic.SkipMapEntry.AbsolutePath = filepath.Join(testdir, "skipFile")
-	err = os.Chmod(filepath.Join(testdir, "skipFile"), 0000)
-	assert.NoError(t, err)
+	assert.NoError(t, os.Chmod(ic.SkipMapEntry.AbsolutePath, 0000))
+	assert.NoError(t, acl.Chmod(ic.SkipMapEntry.AbsolutePath, 0000)) // for windows
 	skipMap, err = ic.ParseSkipMap()
 	assert.Error(t, err)
 	assert.Nil(t, skipMap)
 
+	assert.NoError(t, acl.Chmod(ic.SkipMapEntry.AbsolutePath, fs.ModePerm)) // for windows
 	assert.NoError(t, os.RemoveAll(testdir))
 }
 
@@ -62,13 +65,14 @@ func TestGetFileList(t *testing.T) {
 	assert.NoError(t, err)
 
 	// this is what will create the error in getFileList
-	err = os.Chmod(filepath.Join(testdir, "skipFile"), 0000)
-	assert.NoError(t, err)
+	assert.NoError(t, os.Chmod(filepath.Join(testdir, "skipFile"), 0000))
+	assert.NoError(t, acl.Chmod(filepath.Join(testdir, "skipFile"), 0000)) // for windows
 
 	entries, err := ic.getFileList()
 	assert.Error(t, err)
 	assert.Equal(t, 0, len(entries))
 
+	assert.NoError(t, acl.Chmod(ic.SkipMapEntry.AbsolutePath, fs.ModePerm)) // for windows
 	assert.NoError(t, os.RemoveAll(testdir))
 }
 
