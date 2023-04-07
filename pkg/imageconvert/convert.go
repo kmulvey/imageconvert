@@ -66,6 +66,9 @@ func Convert(inputFile string) (string, string, error) {
 		return "", "", fmt.Errorf("error closing new image: %s, error: %s", inputFile, err.Error())
 	}
 
+	if err := origFile.Close(); err != nil {
+		return "", "", fmt.Errorf("error closing new image: %s, error: %s", inputFile, err.Error())
+	}
 	err = os.Remove(inputFile)
 	if err != nil {
 		return "", "", fmt.Errorf("error removing image: %s, error: %s", inputFile, err.Error())
