@@ -5,6 +5,7 @@ go 1.19
 require (
 	github.com/briandowns/spinner v1.23.0
 	github.com/fsnotify/fsnotify v1.6.0
+	github.com/hectane/go-acl v0.0.0-20230122075934-ca0b05cb1adb
 	github.com/kmulvey/goutils v0.6.0
 	github.com/kmulvey/humantime v0.4.4
 	github.com/kmulvey/path v1.20.0
@@ -13,7 +14,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.2
 	go.szostok.io/version v1.1.0
-	golang.org/x/image v0.6.0
+	golang.org/x/image v0.7.0
 )
 
 require (
@@ -43,7 +44,7 @@ require (
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	golang.org/x/crypto v0.7.0 // indirect
+	golang.org/x/crypto v0.8.0 // indirect
 	golang.org/x/exp v0.0.0-20230321023759-10a507213a29 // indirect
 	golang.org/x/sys v0.7.0 // indirect
 	golang.org/x/term v0.7.0 // indirect
