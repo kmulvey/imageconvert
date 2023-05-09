@@ -13,7 +13,7 @@ require (
 	github.com/otiai10/copy v1.11.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.2
-	go.szostok.io/version v1.1.0
+	go.szostok.io/version v1.2.0
 	golang.org/x/image v0.7.0
 )
 
