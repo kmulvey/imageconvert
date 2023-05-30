@@ -12,7 +12,7 @@ require (
 	github.com/kmulvey/resize v1.0.0
 	github.com/otiai10/copy v1.11.0
 	github.com/sirupsen/logrus v1.9.2
-	github.com/stretchr/testify v1.8.2
+	github.com/stretchr/testify v1.8.3
 	go.szostok.io/version v1.2.0
 	golang.org/x/image v0.7.0
 )
