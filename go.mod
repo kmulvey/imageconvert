@@ -14,7 +14,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.8.4
 	go.szostok.io/version v1.2.0
-	golang.org/x/image v0.9.0
+	golang.org/x/image v0.10.0
 )
 
 require (
