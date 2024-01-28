@@ -125,7 +125,7 @@ func (ic *ImageConverter) startWatch(resultChans ...chan ConversionResult) {
 		ic.ShutdownCompleted[i] = done
 	}
 
-	log.Infof("watrching dir: %s", ic.InputEntry.String())
+	log.Infof("watching dir: %s", ic.InputEntry.String())
 	var watchEvents = make(chan path.WatchEvent)
 	var watchEventsDebounced = make(chan path.WatchEvent)
 
