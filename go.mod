@@ -9,7 +9,7 @@ require (
 	github.com/kmulvey/goutils v0.6.0
 	github.com/kmulvey/humantime v0.4.4
 	github.com/kmulvey/path v1.21.0
-	github.com/kmulvey/resize v1.0.0
+	github.com/kmulvey/resize v1.1.0
 	github.com/otiai10/copy v1.14.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.8.4

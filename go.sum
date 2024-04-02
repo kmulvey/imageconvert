@@ -47,8 +47,8 @@ github.com/kmulvey/humantime v0.4.4 h1:qbNqA5YVrDxOAPPCZpL7/KGlNAj5b4nRy1CwvqymI
 github.com/kmulvey/humantime v0.4.4/go.mod h1:KvEx/whEznif/noiZ9eR4gFF41De003Tk7ZtRW6WCqg=
 github.com/kmulvey/path v1.21.0 h1:7bBCCfds+JN2kkuEW20PLjZFTq1D44TYE7vQ4UaB+IQ=
 github.com/kmulvey/path v1.21.0/go.mod h1:4Kn6THn/giy6fKimfM13cRACjwH8o79lis+Vx9nu/Xc=
-github.com/kmulvey/resize v1.0.0 h1:CsJHVB4Lj7h1PSggwpl5L+ngmNXSB0Nx1jRTLJmbVcQ=
-github.com/kmulvey/resize v1.0.0/go.mod h1:OpVL8EBHBF9eSrqxggQ1YwlXZefzsUpH5HV6NLN5HHk=
+github.com/kmulvey/resize v1.1.0 h1:TczVCWvJuK3rWO3tCVDZxBAEo6qwkkRFd2Li//JA+d8=
+github.com/kmulvey/resize v1.1.0/go.mod h1:C5NlCAUebZ60UT4+NZepTujuWK4gZY1ZEv8K2aKujnA=
 github.com/kr/pretty v0.3.1 h1:flRD4NNwYAUpkphVc1HcthR4KEIFJ65n8Mw5qdRn3LE=
 github.com/kr/pretty v0.3.1/go.mod h1:hoEshYVHaxMs3cyo3Yncou5ZscifuDolrwPKZanG3xk=
 github.com/kr/text v0.2.0 h1:5Nx0Ya0ZqY2ygV366QzturHI13Jq95ApcVaJBhpS+AY=
