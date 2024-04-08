@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"runtime"
 	"strconv"
 	"strings"
 )
@@ -21,20 +20,21 @@ func QualityCheck(maxQuality int, imagePath string) (bool, error) {
 
 	// have to escape the file spaces for the exec call
 	imagePath = EscapeFilePath(imagePath)
-	fmt.Println("escaped path: ", imagePath)
-	var identifyCmd = "identify"
-	if runtime.GOOS == "windows" {
-		identifyCmd = "magick " + identifyCmd
-	}
 
-	fmt.Println("identifyCmd: ", identifyCmd)
-	var cmd = exec.Command("magick", "identify", "-format", "'%Q'", imagePath)
+	// ubuntu does not use the 'magick' prefix, everything else does
+	var cmd = exec.Command("magick", "-version")
+	var err = cmd.Run()
+	if err != nil {
+		cmd = exec.Command("identify", "-format", "'%Q'", imagePath)
+	} else {
+		cmd = exec.Command("magick", "identify", "-format", "'%Q'", imagePath)
+	}
 	var out bytes.Buffer
 	var stderr bytes.Buffer
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
 
-	var err = cmd.Run()
+	err = cmd.Run()
 	if err != nil {
 		return false, fmt.Errorf("error running identify on image: %s, error: %s, stderr: %s, output: %s", imagePath, err.Error(), stderr.String(), out.String())
 	}

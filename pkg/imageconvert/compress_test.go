@@ -2,7 +2,6 @@ package imageconvert
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -17,7 +16,6 @@ func TestQualityCheck(t *testing.T) {
 	var testdir = makeTestDir(t)
 
 	var testImage = moveImage(t, testdir, testPair{Name: "./testimages/realjpg.jpg", Type: "jpeg"})
-	fmt.Println("testImage ", testImage)
 	aboveThreshold, err := QualityCheck(90, testImage)
 	assert.NoError(t, err)
 	assert.True(t, aboveThreshold)
