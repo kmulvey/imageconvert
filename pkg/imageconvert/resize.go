@@ -16,6 +16,7 @@ func (ic *ImageConverter) Resize(filename string) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("error opening file for resizing: %w", err)
 	}
+	defer file.Close()
 
 	// get image config so we can look at height and width
 	config, err := jpeg.DecodeConfig(file)
