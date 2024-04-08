@@ -30,6 +30,8 @@ jobs:
 
       - name: Build & Test
         run: |
+          cp pkg/imageconvert/testimages/realjpg.jpg ./
+          jpegoptim -p -o -m 90 -v realjpg.jpg
           go clean -r ./...
           go mod tidy
           go build -v -ldflags="-s -w" ./...
