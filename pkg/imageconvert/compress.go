@@ -27,6 +27,7 @@ func QualityCheck(maxQuality int, imagePath string) (bool, error) {
 		identifyCmd = "magick " + identifyCmd
 	}
 
+	fmt.Println("identifyCmd: ", identifyCmd)
 	var cmd = exec.Command("bash", "-c", identifyCmd)
 	var out bytes.Buffer
 	var stderr bytes.Buffer
