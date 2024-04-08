@@ -62,7 +62,7 @@ func CompressJPEG(quality int, imagePath string) (bool, string, error) {
 	var escapedImagePath = EscapeFilePath(imagePath)
 	var cmdStr = fmt.Sprintf("jpegoptim -p -o -v -m%d %s", quality, escapedImagePath)
 
-	output, err := exec.Command("bash", "-c", cmdStr).Output()
+	output, err := exec.Command("bash", "-c", cmdStr).CombinedOutput()
 	if err != nil {
 		return false, string(output), fmt.Errorf("error running jpegoptim on image: %s, error: %s, output: %s", imagePath, err.Error(), string(output))
 	}
