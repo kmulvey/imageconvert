@@ -30,6 +30,7 @@ jobs:
 
       - name: Build & Test
         run: |
+          magick identify --version
           go clean -r ./...
           go mod tidy
           go build -v -ldflags="-s -w" ./...
