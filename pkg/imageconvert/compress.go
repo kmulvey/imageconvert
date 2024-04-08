@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"runtime"
 	"strconv"
 	"strings"
 )
@@ -22,6 +23,10 @@ func QualityCheck(maxQuality int, imagePath string) (bool, error) {
 	imagePath = EscapeFilePath(imagePath)
 
 	var identifyCmd = fmt.Sprintf("identify -format %s %s", "'%Q'", imagePath)
+	if runtime.GOOS == "windows" {
+		identifyCmd = "magick" + identifyCmd
+	}
+
 	var cmd = exec.Command("bash", "-c", identifyCmd)
 	var out bytes.Buffer
 	var stderr bytes.Buffer
