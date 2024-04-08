@@ -66,7 +66,7 @@ func CompressJPEG(quality int, imagePath string) (bool, string, error) {
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 	var err = cmd.Run()
-	outStr, errStr := string(stdout.Bytes()), string(stderr.Bytes())
+	outStr, errStr := stdout.String(), stderr.String()
 
 	// check stdout first because we are getting some false 'exit status 1' in err
 	if strings.Contains(outStr, "optimized.") {
