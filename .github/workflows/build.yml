@@ -7,7 +7,7 @@ jobs:
     name: ImageConvert build
     strategy:
       matrix:
-        os: [windows-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -30,7 +30,6 @@ jobs:
 
       - name: Build & Test
         run: |
-          magick identify --version
           go clean -r ./...
           go mod tidy
           go build -v -ldflags="-s -w" ./...
