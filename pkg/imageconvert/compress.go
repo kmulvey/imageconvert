@@ -30,7 +30,7 @@ func QualityCheck(maxQuality int, imagePath string) (bool, error) {
 
 	var err = cmd.Run()
 	if err != nil {
-		fmt.Println("stderr", stderr)
+		fmt.Println("stderr", stderr.String())
 		return false, fmt.Errorf("error running identify on image: %s, error: %s, output: %s", imagePath, err.Error(), out.String())
 	}
 
