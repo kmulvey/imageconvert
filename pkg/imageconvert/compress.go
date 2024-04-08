@@ -21,7 +21,7 @@ func QualityCheck(maxQuality int, imagePath string) (bool, error) {
 
 	// have to escape the file spaces for the exec call
 	imagePath = EscapeFilePath(imagePath)
-
+	fmt.Println("escaped path: ", imagePath)
 	var identifyCmd = fmt.Sprintf("identify -format %s %s", "'%Q'", imagePath)
 	if runtime.GOOS == "windows" {
 		identifyCmd = "magick " + identifyCmd
