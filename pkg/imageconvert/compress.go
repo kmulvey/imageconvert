@@ -60,13 +60,14 @@ func CompressJPEG(quality int, imagePath string) (bool, string, error) {
 
 	// have to escape the file spaces for the exec call
 	var escapedImagePath = EscapeFilePath(imagePath)
-	var cmdStr = fmt.Sprintf("jpegoptim -p -o -m%d %s", quality, escapedImagePath)
+	var cmdStr = fmt.Sprintf("jpegoptim -p -o -v -m%d %s", quality, escapedImagePath)
 
 	output, err := exec.Command("bash", "-c", cmdStr).Output()
 	if err != nil {
 		return false, string(output), fmt.Errorf("error running jpegoptim on image: %s, error: %s, output: %s", imagePath, err.Error(), output)
 	}
 
+	fmt.Println("output ", string(output))
 	if strings.Contains(string(output), "optimized.") {
 		return true, string(output), nil
 	}
