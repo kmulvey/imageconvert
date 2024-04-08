@@ -22,13 +22,13 @@ func QualityCheck(maxQuality int, imagePath string) (bool, error) {
 	// have to escape the file spaces for the exec call
 	imagePath = EscapeFilePath(imagePath)
 	fmt.Println("escaped path: ", imagePath)
-	var identifyCmd = fmt.Sprintf("identify -format %s %s", "'%Q'", imagePath)
+	var identifyCmd = "identify"
 	if runtime.GOOS == "windows" {
 		identifyCmd = "magick " + identifyCmd
 	}
 
 	fmt.Println("identifyCmd: ", identifyCmd)
-	var cmd = exec.Command("bash", "-c", identifyCmd)
+	var cmd = exec.Command(identifyCmd, "-format", "'%Q'", imagePath)
 	var out bytes.Buffer
 	var stderr bytes.Buffer
 	cmd.Stdout = &out
@@ -39,9 +39,10 @@ func QualityCheck(maxQuality int, imagePath string) (bool, error) {
 		return false, fmt.Errorf("error running identify on image: %s, error: %s, stderr: %s, output: %s", imagePath, err.Error(), stderr.String(), out.String())
 	}
 
-	imageQuality, err := strconv.ParseInt(out.String(), 10, 0)
+	var qualityStr = strings.ReplaceAll(out.String(), "'", "")
+	imageQuality, err := strconv.ParseInt(qualityStr, 10, 0)
 	if err != nil {
-		return false, fmt.Errorf("error parsing int for quality on image: %s, error: %s", imagePath, err.Error())
+		return false, fmt.Errorf("error parsing int for quality on image: %s, quality: %s, error: %s", imagePath, qualityStr, err.Error())
 	}
 
 	return imageQuality >= int64(maxQuality), nil
