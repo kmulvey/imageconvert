@@ -24,7 +24,7 @@ func QualityCheck(maxQuality int, imagePath string) (bool, error) {
 
 	var identifyCmd = fmt.Sprintf("identify -format %s %s", "'%Q'", imagePath)
 	if runtime.GOOS == "windows" {
-		identifyCmd = "magick" + identifyCmd
+		identifyCmd = "magick " + identifyCmd
 	}
 
 	var cmd = exec.Command("bash", "-c", identifyCmd)
@@ -35,8 +35,7 @@ func QualityCheck(maxQuality int, imagePath string) (bool, error) {
 
 	var err = cmd.Run()
 	if err != nil {
-		fmt.Println("stderr", stderr.String())
-		return false, fmt.Errorf("error running identify on image: %s, error: %s, output: %s", imagePath, err.Error(), out.String())
+		return false, fmt.Errorf("error running identify on image: %s, error: %s, stderr: %s, output: %s", imagePath, err.Error(), stderr.String(), out.String())
 	}
 
 	imageQuality, err := strconv.ParseInt(out.String(), 10, 0)
