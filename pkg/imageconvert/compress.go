@@ -28,7 +28,7 @@ func QualityCheck(maxQuality int, imagePath string) (bool, error) {
 	}
 
 	fmt.Println("identifyCmd: ", identifyCmd)
-	var cmd = exec.Command(identifyCmd, "-format", "'%Q'", imagePath)
+	var cmd = exec.Command("magick", "identify", "-format", "'%Q'", imagePath)
 	var out bytes.Buffer
 	var stderr bytes.Buffer
 	cmd.Stdout = &out
