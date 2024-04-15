@@ -9,7 +9,15 @@ ImageConvert converts pngs and webps to jpeg and optionally compresses them with
 - [jpegoptim](https://github.com/tjko/jpegoptim)
 
 ## Run
-`imageconvert -compress -log-file processed.log -dir /path/to/images`
+```
+imageconvert -compress -log-file processed.log -dir /path/to/images
+```
+```
+imageconvert -compress -threads 1 -depth 2 -resize-threshold "2560x1440" -resize-size "5120x2880" -processed-file processed.log -path /path/to/images -watch
+```
+```
+trimlog -log-file processed.log
+```
 
 print help:
 
