@@ -2,7 +2,7 @@ before:
   hooks:
     - go mod tidy
 
-builds:  
+builds: 
   - id: imageconvert
     main: ./cmd/imageconvert/
     env:
@@ -114,7 +114,7 @@ nfpms:
 
     # Your app's description.
     description: |-
-       Convert and compress large libraries of images 
+      Convert and compress large libraries of images
 
     # Your app's license.
     license: MIT
