@@ -63,7 +63,7 @@ func CompressJPEG(quality int, imagePath string) (bool, string, error) {
 	// have to escape the file spaces for the exec call
 	var escapedImagePath = EscapeFilePath(imagePath)
 
-	var cmd = exec.Command("jpegoptim", "-p", "-o", "-v", "-m 90", escapedImagePath)
+	var cmd = exec.Command("jpegoptim", "-p", "-o", "-v", "-m", strconv.Itoa(quality), escapedImagePath)
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
