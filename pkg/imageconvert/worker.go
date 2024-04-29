@@ -73,7 +73,15 @@ func (ic *ImageConverter) convertImage(originalFile path.Entry) ConversionResult
 	}
 
 	// COMPRESS IT
-	if ic.Compress {
+	if ic.AVIF {
+		compressed, _, err := CompressAVIF(85, result.ConvertedFileName)
+		if err != nil {
+			result.Error = fmt.Errorf("error compressing image: %s, error: %w", originalFile, err)
+			return result
+		}
+		result.Compressed = compressed
+
+	} else if ic.Compress {
 		compressed, stdout, err := CompressJPEG(85, result.ConvertedFileName)
 		if err != nil {
 			result.Error = fmt.Errorf("error compressing image: %s, error: %w", originalFile, err)

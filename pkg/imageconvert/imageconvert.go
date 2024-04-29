@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/davidbyttow/govips/v2/vips"
 	"github.com/kmulvey/goutils"
 	"github.com/kmulvey/humantime"
 	"github.com/kmulvey/path"
@@ -13,11 +14,12 @@ import (
 type ImageConverter struct {
 	Compress              bool
 	Force                 bool
+	Watch                 bool
+	AVIF                  bool
 	ResizeWidth           uint16
 	ResizeWidthThreshold  uint16
 	ResizeHeight          uint16
 	ResizeHeightThreshold uint16
-	Watch                 bool
 	Threads               uint8
 	InputEntry            path.Entry
 	InputFiles            []path.Entry
@@ -30,6 +32,8 @@ type ImageConverter struct {
 
 func NewWithDefaults(inputPath, skipFile string, directoryDepth uint8) (ImageConverter, error) {
 
+	vips.LoggingSettings(nil, vips.LogLevelCritical)
+	vips.Startup(nil)
 	var ic = ImageConverter{
 		Threads:           1,
 		ShutdownCompleted: make([]chan struct{}, 1),
@@ -67,6 +71,7 @@ func NewWithDefaults(inputPath, skipFile string, directoryDepth uint8) (ImageCon
 }
 
 func (ic *ImageConverter) Shutdown() {
+	vips.Shutdown()
 	close(ic.ShutdownTrigger)
 	<-goutils.MergeChannels(ic.ShutdownCompleted...)
 }
@@ -88,6 +93,10 @@ func (ic *ImageConverter) WithResize(width, height, widthThreshold, heightThresh
 
 func (ic *ImageConverter) WithWatch() {
 	ic.Watch = true
+}
+
+func (ic *ImageConverter) WithAVIF() {
+	ic.AVIF = true
 }
 
 func (ic *ImageConverter) WithThreads(threads uint8) {

@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/davidbyttow/govips/v2/vips"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -48,6 +49,31 @@ func TestCompressJPEG(t *testing.T) {
 	assert.False(t, compressed)
 
 	compressed, _, err = CompressJPEG(90, "not a file")
+	assert.True(t, errors.Is(err, os.ErrNotExist))
+	assert.False(t, compressed)
+
+	assert.NoError(t, os.RemoveAll(testdir))
+}
+
+func TestCompressAVIF(t *testing.T) {
+	t.Parallel()
+
+	vips.LoggingSettings(nil, vips.LogLevelCritical)
+	vips.Startup(nil)
+	defer vips.Shutdown()
+	var testdir = makeTestDir(t)
+
+	var testImage = moveImage(t, testdir, testPair{Name: "./testimages/realjpg.jpg", Type: "jpeg"})
+	var compressed, _, err = CompressAVIF(90, testImage)
+	assert.NoError(t, err)
+	assert.True(t, compressed)
+
+	assert.NoError(t, os.WriteFile(filepath.Join(testdir, "test.txt"), make([]byte, 10), os.ModePerm))
+	compressed, _, err = CompressAVIF(90, filepath.Join(testdir, "test.txt"))
+	assert.Equal(t, "unsupported image format", err.Error())
+	assert.False(t, compressed)
+
+	compressed, _, err = CompressAVIF(90, "not a file")
 	assert.True(t, errors.Is(err, os.ErrNotExist))
 	assert.False(t, compressed)
 

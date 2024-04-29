@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/davidbyttow/govips/v2/vips"
 )
 
 // QualityCheck uses imagemagick to determine the quality of the image
@@ -81,4 +84,36 @@ func CompressJPEG(quality int, imagePath string) (bool, string, error) {
 	}
 
 	return false, outStr, nil
+}
+
+func CompressAVIF(quality int, imagePath string) (bool, string, error) {
+
+	// lint input, helps prevent arbitrary code execution
+	if _, err := os.Stat(imagePath); err != nil {
+		return false, "", err
+	}
+
+	var decodedImg, err = vips.NewImageFromFile(imagePath)
+	if err != nil {
+		return false, "", err
+	}
+
+	var params = &vips.AvifExportParams{
+		Quality:  quality,
+		Bitdepth: 8,
+		Effort:   5,
+		Lossless: false,
+	}
+	image1bytes, _, err := decodedImg.ExportAvif(params)
+	if err != nil {
+		return false, "", err
+	}
+
+	var outfile = strings.ReplaceAll(imagePath, filepath.Ext(imagePath), ".avif")
+	err = os.WriteFile(outfile, image1bytes, 0600)
+	if err != nil {
+		return false, "", err
+	}
+
+	return true, "", nil
 }
