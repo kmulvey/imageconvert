@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kmulvey/imageconvert/pkg/imageconvert"
+	"github.com/kmulvey/imageconvert/v2/pkg/imageconvert"
 	"github.com/kmulvey/path"
 	log "github.com/sirupsen/logrus"
 )

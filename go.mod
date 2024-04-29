@@ -1,4 +1,4 @@
-module github.com/kmulvey/imageconvert
+module github.com/kmulvey/imageconvert/v2
 
 go 1.22.2
 
