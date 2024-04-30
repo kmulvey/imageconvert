@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/kmulvey/humantime"
-	"github.com/kmulvey/imageconvert/v2/pkg/imageconvert"
+	"github.com/kmulvey/imageconvert/v2/internal/app/imageconvert"
 	log "github.com/sirupsen/logrus"
 	"go.szostok.io/version"
 	"go.szostok.io/version/printer"
