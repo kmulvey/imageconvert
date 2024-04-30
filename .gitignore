@@ -15,6 +15,8 @@
 # vendor/
 cmd/imageconvert/imageconvert
 cmd/imageconvert/processed.log
+cmd/imageconvert/docs.sh
+cmd/imageconvert/upsized.sh
 cmd/trimlog/trimlog
 cmd/fixfilenames/fixfilenames
 .vscode
