@@ -82,7 +82,6 @@ func main() {
 		var thresholdArr = strings.Split(resizeThreshold, "x")
 		if len(thresholdArr) != 2 {
 			log.Fatalf("resize threshold not in the format: [width]x[height] e.g. 230x400, input: %s, error: %s", resizeThreshold, err)
-
 		}
 
 		var sizeArr = strings.Split(resizeSize, "x")
