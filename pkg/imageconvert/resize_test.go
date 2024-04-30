@@ -30,5 +30,11 @@ func TestResize(t *testing.T) {
 	assert.NoError(t, err)
 	assert.False(t, resized)
 
+	testImage = moveImage(t, testdir, testPair{Name: "./testimages/realjpg-portrait.jpg", Type: "jpeg"})
+
+	resized, err = Resize(testImage, 300, 200, 200, 100)
+	assert.NoError(t, err)
+	assert.True(t, resized)
+
 	assert.NoError(t, os.RemoveAll(testdir))
 }
