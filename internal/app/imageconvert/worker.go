@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/kmulvey/imageconvert/v2/pkg/imageconvert"
 	"github.com/kmulvey/path"
 )
 
@@ -55,7 +56,7 @@ func (ic *ImageConverter) convertImage(originalFile path.Entry) ConversionResult
 	// CONVERT IT
 	var imageType string
 	var err error
-	result.ConvertedFileName, imageType, err = Convert(originalFile.String())
+	result.ConvertedFileName, imageType, err = imageconvert.Convert(originalFile.String())
 	if err != nil {
 		result.Error = fmt.Errorf("error converting image: %s, error: %w", originalFile, err)
 		return result
@@ -64,7 +65,7 @@ func (ic *ImageConverter) convertImage(originalFile path.Entry) ConversionResult
 
 	// RESIZE IT
 	if ic.ResizeWidth > 0 && ic.ResizeHeight > 0 {
-		resized, err := ic.Resize(result.ConvertedFileName)
+		resized, err := imageconvert.Resize(result.ConvertedFileName, int(ic.ResizeWidthThreshold), int(ic.ResizeHeightThreshold), uint(ic.ResizeWidth), uint(ic.ResizeHeight))
 		if err != nil {
 			result.Error = fmt.Errorf("error resizing image: %s, error: %w", originalFile, err)
 			return result
@@ -74,7 +75,7 @@ func (ic *ImageConverter) convertImage(originalFile path.Entry) ConversionResult
 
 	// COMPRESS IT
 	if ic.Compress {
-		compressed, stdout, err := CompressJPEG(85, result.ConvertedFileName)
+		compressed, stdout, err := imageconvert.CompressJPEG(85, result.ConvertedFileName)
 		if err != nil {
 			result.Error = fmt.Errorf("error compressing image: %s, error: %w", originalFile, err)
 			return result
