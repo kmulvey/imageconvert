@@ -13,24 +13,20 @@ func TestResize(t *testing.T) {
 	// setup
 	var testdir = makeTestDir(t)
 	var testImage = moveImage(t, testdir, testPair{Name: "./testimages/realjpg.jpg", Type: "jpeg"})
-	var ic, err = NewWithDefaults(testImage, "", 0)
-	assert.NoError(t, err)
-	ic.WithResize(200, 100, 300, 200)
 
-	resized, err := ic.Resize(testImage)
+	resized, err := Resize(testImage, 300, 200, 200, 100)
 	assert.NoError(t, err)
 	assert.True(t, resized)
 
-	resized, err = ic.Resize("noexist")
+	resized, err = Resize("noexist", 300, 200, 200, 100)
 	assert.Error(t, err)
 	assert.False(t, resized)
 
-	resized, err = ic.Resize("./compress.go")
+	resized, err = Resize("./compress.go", 300, 200, 200, 100)
 	assert.Error(t, err)
 	assert.False(t, resized)
 
-	ic.WithResize(2000, 1000, 3000, 2000)
-	resized, err = ic.Resize(testImage)
+	resized, err = Resize(testImage, 3000, 2000, 2000, 1000)
 	assert.NoError(t, err)
 	assert.False(t, resized)
 

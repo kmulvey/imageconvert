@@ -82,3 +82,9 @@ func CompressJPEG(quality int, imagePath string) (bool, string, error) {
 
 	return false, outStr, nil
 }
+
+// EscapeFilePath escapes spaces in the filepath used for an exec() call.
+func EscapeFilePath(file string) string {
+	var r = strings.NewReplacer(" ", `\ `, "(", `\(`, ")", `\)`, "'", `\'`, "&", `\&`, "@", `\@`)
+	return r.Replace(file)
+}
