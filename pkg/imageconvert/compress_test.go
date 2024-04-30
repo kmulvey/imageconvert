@@ -42,6 +42,18 @@ func TestCompressJPEG(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, compressed)
 
+	// do it til it wont compress anymore
+	var skipped bool
+	for i := 0; i < 10; i++ {
+		compressed, _, err = CompressJPEG(90, testImage)
+		assert.NoError(t, err)
+		if !compressed {
+			skipped = true
+			break
+		}
+	}
+	assert.True(t, skipped)
+
 	assert.NoError(t, os.WriteFile(filepath.Join(testdir, "test.txt"), make([]byte, 10), os.ModePerm))
 	compressed, _, err = CompressJPEG(90, filepath.Join(testdir, "test.txt"))
 	assert.True(t, strings.HasPrefix(err.Error(), "error running jpegoptim on image:"))
