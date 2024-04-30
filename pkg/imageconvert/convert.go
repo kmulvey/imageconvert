@@ -56,7 +56,7 @@ func Convert(inputFile string) (string, string, error) {
 		return "", "", fmt.Errorf("error creating new image: %s, error: %s", inputFile, err.Error())
 	}
 
-	err = jpeg.Encode(out, imgData, &jpeg.Options{Quality: 85})
+	err = jpeg.Encode(out, imgData, &jpeg.Options{Quality: 90})
 	if err != nil {
 		return "", "", fmt.Errorf("error encoding new image: %s, error: %s", inputFile, err.Error())
 	}
