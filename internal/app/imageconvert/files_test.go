@@ -130,10 +130,3 @@ func TestWaitTilFileWritesComplete(t *testing.T) {
 	close(eventsIn)
 	assert.NoError(t, os.RemoveAll(testdir))
 }
-
-func TestEscapeFilePath(t *testing.T) {
-	t.Parallel()
-
-	assert.Equal(t, "/some/file/\\&name", EscapeFilePath("/some/file/&name"))
-	assert.Equal(t, "/some/file/\\(name\\)", EscapeFilePath("/some/file/(name)"))
-}

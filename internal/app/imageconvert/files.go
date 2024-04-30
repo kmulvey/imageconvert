@@ -8,7 +8,6 @@ import (
 	"io/fs"
 	"os"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/fsnotify/fsnotify"
@@ -22,17 +21,11 @@ var ImageExtensionRegex = regexp.MustCompile(".*.jpg$|.*.jpeg$|.*.png$|.*.webp$|
 // RenameExtensionRegex captures file extensions that we would like to rename to the extensions above.
 var RenameSuffixRegex = regexp.MustCompile(".*.jpeg$|.*.png$|.*.webp$|.*.JPG$|.*.JPEG$|.*.PNG$|.*.WEBP$")
 
-// EscapeFilePath escapes spaces in the filepath used for an exec() call.
-func EscapeFilePath(file string) string {
-	var r = strings.NewReplacer(" ", `\ `, "(", `\(`, ")", `\)`, "'", `\'`, "&", `\&`, "@", `\@`)
-	return r.Replace(file)
-}
-
 var NilTime = time.Time{}
 
-// ParseSkipMap read the log from the last time this was run and
+// ParseSkipMap reads the log from the last time this was run and
 // puts those filenames in a map so we dont have to process them again
-// If you want to reprocess, just delete the file
+// If you want to reprocess, just delete the file.
 func (ic *ImageConverter) ParseSkipMap() (map[string]struct{}, error) {
 
 	var processedImages, err = os.OpenFile(ic.SkipMapEntry.String(), os.O_RDONLY, 0755)
