@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"os"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -45,5 +46,7 @@ func TestChangeFileName(t *testing.T) {
 	assert.NoError(t, newFile.Close())
 
 	assert.NoError(t, os.RemoveAll(oldFile.Name()))
-	assert.NoError(t, os.RemoveAll(newFile.Name()))
+	if runtime.GOOS != "windows" { // windows cant do anything right
+		assert.NoError(t, os.RemoveAll(newFile.Name()))
+	}
 }
