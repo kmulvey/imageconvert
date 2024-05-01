@@ -36,38 +36,49 @@ func main() {
 		os.Exit(0)
 	}
 
+	if err := renameFiles(inputPath); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func renameFiles(inputPath string) error {
 	var files, err = path.List(inputPath, 2, false, path.NewRegexEntitiesFilter(imageconvert.ImageExtensionRegex))
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	for _, file := range files {
-		var filename = filepath.Base(file.AbsolutePath)
-		var justName = strings.TrimSuffix(filename, filepath.Ext(filename))
-
-		var newName = strings.Builder{}
-		var changed bool
-		for _, char := range justName {
-
-			if !validCharacter(char) {
-				newName.WriteString(randomString())
-				changed = true
-			} else {
-				newName.WriteRune(char)
-			}
-		}
-
+		var newFileName, changed = changeFileName(file)
 		if changed {
-			var newPath = filepath.Join(filepath.Dir(file.AbsolutePath), newName.String()+filepath.Ext(filename))
+			var newPath = filepath.Join(filepath.Dir(file.AbsolutePath), newFileName+filepath.Ext(file.AbsolutePath))
 
 			if _, err := os.Stat(newPath); errors.Is(err, os.ErrNotExist) {
-				fmt.Printf("old name: %s \nnew name: %s\n", justName, newName.String())
+				fmt.Printf("old name: %s \nnew name: %s\n", filepath.Base(file.AbsolutePath), newFileName)
 				fmt.Printf("%s \n\n", newPath)
 			} else {
 				log.Infof("already exists: %s", newPath)
 			}
 		}
 	}
+	return nil
+}
+
+func changeFileName(file path.Entry) (string, bool) {
+	var filename = filepath.Base(file.AbsolutePath)
+	var justName = strings.TrimSuffix(filename, filepath.Ext(filename))
+
+	var newName = strings.Builder{}
+	var changed bool
+	for _, char := range justName {
+
+		if !validCharacter(char) {
+			newName.WriteString(randomCharacter())
+			changed = true
+		} else {
+			newName.WriteRune(char)
+		}
+	}
+	return newName.String(), changed
 }
 
 func validCharacter(r rune) bool {
@@ -81,7 +92,7 @@ func validCharacter(r rune) bool {
 	return false
 }
 
-func randomString() string {
+func randomCharacter() string {
 	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 	return string(letters[randSource.Intn(len(letters))])
 }
