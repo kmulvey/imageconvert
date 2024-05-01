@@ -22,11 +22,6 @@ func TestValidCharacter(t *testing.T) {
 	assert.False(t, validCharacter('世'))
 }
 
-func TestRandomCharacter(t *testing.T) {
-	t.Parallel()
-	assert.True(t, len(randomCharacter()) == 1)
-}
-
 func TestChangeFileName(t *testing.T) {
 	t.Parallel()
 
@@ -55,5 +50,18 @@ func TestRenameFiles(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NoError(t, renameFiles("testdir"))
 
+	// already exists collision
+	_, err = os.Create("./testdir/bad$name.jpg")
+	assert.NoError(t, err)
+	assert.NoError(t, renameFiles("testdir"))
+
+	assert.Error(t, renameFiles("noexistdir"))
+
 	assert.NoError(t, os.RemoveAll("testdir"))
+}
+
+func TestMoveFile(t *testing.T) {
+	t.Parallel()
+	assert.Error(t, moveFile("/does/not/exist/", "testdir/goodname.jpg"))
+	assert.Error(t, moveFile("main.go", "/does/not/exist/"))
 }

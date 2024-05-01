@@ -4,27 +4,15 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"math/rand"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
-	"time"
 
 	"github.com/kmulvey/imageconvert/v2/internal/app/imageconvert"
 	"github.com/kmulvey/path"
 	log "github.com/sirupsen/logrus"
 )
-
-var randSource *rand.Rand
-var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
-var lettersMutex sync.RWMutex
-
-func init() {
-	// rand here is used to generate random strings, it does not need to be crypto secure so we suppress the linter warning
-	//nolint:gosec
-	randSource = rand.New(rand.NewSource(time.Now().UnixNano()))
-}
 
 func main() {
 
@@ -56,8 +44,10 @@ func renameFiles(inputPath string) error {
 			var newPath = filepath.Join(filepath.Dir(file.AbsolutePath), newFileName+filepath.Ext(file.AbsolutePath))
 
 			if _, err := os.Stat(newPath); errors.Is(err, os.ErrNotExist) {
-				fmt.Printf("old name: %s \nnew name: %s\n", filepath.Base(file.AbsolutePath), newFileName)
-				fmt.Printf("%s \n\n", newPath)
+				if err := moveFile(file.AbsolutePath, newPath); err != nil {
+					return err
+				}
+				log.Infof("old name: %s, new name: %s", filepath.Base(file.AbsolutePath), newFileName)
 			} else {
 				log.Infof("already exists: %s", newPath)
 			}
@@ -75,7 +65,7 @@ func changeFileName(file path.Entry) (string, bool) {
 	for _, char := range justName {
 
 		if !validCharacter(char) {
-			newName.WriteString(randomCharacter())
+			newName.WriteString("a")
 			changed = true
 		} else {
 			newName.WriteRune(char)
@@ -95,8 +85,29 @@ func validCharacter(r rune) bool {
 	return false
 }
 
-func randomCharacter() string {
-	lettersMutex.Lock()
-	defer lettersMutex.Unlock()
-	return string(letters[randSource.Intn(len(letters))])
+func moveFile(sourcePath, destPath string) error {
+	inputFile, err := os.Open(sourcePath)
+	if err != nil {
+		return fmt.Errorf("Couldn't open source file: %v", err)
+	}
+	defer inputFile.Close()
+
+	outputFile, err := os.Create(destPath)
+	if err != nil {
+		return fmt.Errorf("Couldn't open dest file: %v", err)
+	}
+	defer outputFile.Close()
+
+	_, err = io.Copy(outputFile, inputFile)
+	if err != nil {
+		return fmt.Errorf("Couldn't copy to dest from source: %v", err)
+	}
+
+	inputFile.Close() // for Windows, close before trying to remove: https://stackoverflow.com/a/64943554/246801
+
+	err = os.Remove(sourcePath)
+	if err != nil {
+		return fmt.Errorf("Couldn't remove source file: %v", err)
+	}
+	return nil
 }
