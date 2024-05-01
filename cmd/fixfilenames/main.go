@@ -18,7 +18,7 @@ import (
 
 var randSource *rand.Rand
 var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
-var letterMutex sync.RWMutex
+var lettersMutex sync.RWMutex
 
 func init() {
 	// rand here is used to generate random strings, it does not need to be crypto secure so we suppress the linter warning
@@ -30,7 +30,7 @@ func main() {
 
 	var inputPath string
 	var h bool
-	flag.StringVar(&inputPath, "path", "", "path to log")
+	flag.StringVar(&inputPath, "path", "", "path to directory")
 	flag.BoolVar(&h, "help", false, "print options")
 	flag.Parse()
 
@@ -96,7 +96,7 @@ func validCharacter(r rune) bool {
 }
 
 func randomCharacter() string {
-	letterMutex.RLock()
-	defer letterMutex.RUnlock()
+	lettersMutex.Lock()
+	defer lettersMutex.Unlock()
 	return string(letters[randSource.Intn(len(letters))])
 }
