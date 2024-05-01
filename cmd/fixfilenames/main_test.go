@@ -44,10 +44,12 @@ func TestRenameFiles(t *testing.T) {
 
 	var goodFile, err = os.Create("./testdir/goodname.jpg")
 	assert.NoError(t, err)
+	assert.NoError(t, goodFile.Close())
 	assert.NoError(t, renameFiles("testdir"))
 
 	badFile, err := os.Create("./testdir/bad$name.jpg")
 	assert.NoError(t, err)
+	assert.NoError(t, badFile.Close())
 	assert.NoError(t, renameFiles("testdir"))
 
 	// already exists collision
@@ -57,8 +59,6 @@ func TestRenameFiles(t *testing.T) {
 
 	assert.Error(t, renameFiles("noexistdir"))
 
-	assert.NoError(t, goodFile.Close())
-	assert.NoError(t, badFile.Close())
 	assert.NoError(t, os.RemoveAll("testdir"))
 }
 
