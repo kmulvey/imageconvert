@@ -24,6 +24,8 @@ func TestChangeFileName(t *testing.T) {
 	assert.NoError(t, oldFile.Close())
 
 	assert.NoError(t, cleanLogFile(oldFile.Name(), "new.log"))
+	assert.Error(t, cleanLogFile("noexist.log", "new.log"))
+	assert.Error(t, cleanLogFile(oldFile.Name(), "./nodir/new.log"))
 
 	newFile, err := os.OpenFile("new.log", os.O_RDONLY, 0755)
 	assert.NoError(t, err)
@@ -42,9 +44,6 @@ func TestChangeFileName(t *testing.T) {
 	assert.Equal(t, 0, len(expectedFileData))
 	assert.NoError(t, newFile.Close())
 
-	assert.Error(t, cleanLogFile("noexist.log", "new.log"))
-	assert.Error(t, cleanLogFile(oldFile.Name(), "./nodir/new.log"))
-
-	assert.NoError(t, os.RemoveAll("old.log"))
-	assert.NoError(t, os.RemoveAll("new.log"))
+	assert.NoError(t, os.RemoveAll(oldFile.Name()))
+	assert.NoError(t, os.RemoveAll(newFile.Name()))
 }
