@@ -3,11 +3,11 @@ package main
 import (
 	"bufio"
 	"flag"
+	"fmt"
 	"os"
 	"time"
 
 	"github.com/briandowns/spinner"
-	"github.com/kmulvey/path"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -18,9 +18,10 @@ func main() {
 	s.Start()
 	defer s.Stop()
 
-	var inputPath path.Entry
+	var oldFile, newFile string
 	var h bool
-	flag.Var(&inputPath, "log-file", "path to log")
+	flag.StringVar(&oldFile, "old-log-file", "", "path to old log file")
+	flag.StringVar(&newFile, "new-log-file", "", "path to new log file")
 	flag.BoolVar(&h, "help", false, "print options")
 	flag.Parse()
 
@@ -29,35 +30,41 @@ func main() {
 		return
 	}
 
-	originalFile, err := os.OpenFile(inputPath.String(), os.O_RDONLY, 0755)
-	if err != nil {
-		log.Error(err)
-		return
+	if err := cleanLogFile(oldFile, newFile); err != nil {
+		log.Fatal(err)
 	}
-	defer originalFile.Close()
+}
 
-	newFile, err := os.Create("./new.log")
+func cleanLogFile(oldLog, newLog string) error {
+
+	var oldFile, err = os.OpenFile(oldLog, os.O_RDONLY, 0755)
 	if err != nil {
-		log.Error(err)
-		return
+		return fmt.Errorf("error opening the old log file: %w", err)
 	}
-	fileScanner := bufio.NewScanner(originalFile)
+	defer oldFile.Close()
+
+	newFile, err := os.Create(newLog)
+	if err != nil {
+		return fmt.Errorf("error opening the new log file: %w", err)
+	}
+	defer oldFile.Close()
+
+	var fileScanner = bufio.NewScanner(oldFile)
 	fileScanner.Split(bufio.ScanLines)
 
 	// only keep filenames of files that exist
 	var uniqueFiles = make(map[string]struct{})
 	for fileScanner.Scan() {
-		var entry = fileScanner.Text()
-		var _, err = path.NewEntry(entry, 0)
-		if err == nil {
-			uniqueFiles[entry] = struct{}{}
+		var filename = fileScanner.Text()
+		if _, err := os.Stat(filename); err == nil {
+			uniqueFiles[filename] = struct{}{}
 		}
 	}
 
 	for filename := range uniqueFiles {
 		if _, err := newFile.WriteString(filename + "\n"); err != nil {
-			log.Error(err)
-			return
+			return fmt.Errorf("error writing to the new log file: %w", err)
 		}
 	}
+	return nil
 }
