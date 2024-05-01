@@ -42,11 +42,11 @@ func TestRenameFiles(t *testing.T) {
 
 	assert.NoError(t, os.Mkdir("testdir", os.ModePerm))
 
-	var _, err = os.Create("./testdir/goodname.jpg")
+	var goodFile, err = os.Create("./testdir/goodname.jpg")
 	assert.NoError(t, err)
 	assert.NoError(t, renameFiles("testdir"))
 
-	_, err = os.Create("./testdir/bad$name.jpg")
+	badFile, err := os.Create("./testdir/bad$name.jpg")
 	assert.NoError(t, err)
 	assert.NoError(t, renameFiles("testdir"))
 
@@ -57,6 +57,8 @@ func TestRenameFiles(t *testing.T) {
 
 	assert.Error(t, renameFiles("noexistdir"))
 
+	assert.NoError(t, goodFile.Close())
+	assert.NoError(t, badFile.Close())
 	assert.NoError(t, os.RemoveAll("testdir"))
 }
 
