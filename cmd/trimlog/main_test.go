@@ -13,15 +13,20 @@ func TestChangeFileName(t *testing.T) {
 
 	var oldFile, err = os.Create("./old.log")
 	assert.NoError(t, err)
-	oldFile.WriteString("main.go\n")
-	oldFile.WriteString("main_test.go\n")
-	oldFile.WriteString("noexist.go\n")
-	oldFile.WriteString("no-exist.go\n")
+	_, err = oldFile.WriteString("main.go\n")
+	assert.NoError(t, err)
+	_, err = oldFile.WriteString("main_test.go\n")
+	assert.NoError(t, err)
+	_, err = oldFile.WriteString("noexist.go\n")
+	assert.NoError(t, err)
+	_, err = oldFile.WriteString("no-exist.go\n")
+	assert.NoError(t, err)
 	assert.NoError(t, oldFile.Close())
 
 	assert.NoError(t, cleanLogFile(oldFile.Name(), "new.log"))
 
 	newFile, err := os.OpenFile("new.log", os.O_RDONLY, 0755)
+	assert.NoError(t, err)
 	var fileScanner = bufio.NewScanner(newFile)
 	fileScanner.Split(bufio.ScanLines)
 

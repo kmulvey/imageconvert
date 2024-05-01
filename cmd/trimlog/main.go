@@ -31,7 +31,7 @@ func main() {
 	}
 
 	if err := cleanLogFile(oldFile, newFile); err != nil {
-		log.Fatal(err)
+		log.Error(err)
 	}
 }
 
