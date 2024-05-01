@@ -11,7 +11,7 @@ import (
 func TestChangeFileName(t *testing.T) {
 	t.Parallel()
 
-	var oldFile, err = os.Create("./old.log")
+	var oldFile, err = os.Create("old.log")
 	assert.NoError(t, err)
 	_, err = oldFile.WriteString("main.go\n")
 	assert.NoError(t, err)
@@ -45,6 +45,6 @@ func TestChangeFileName(t *testing.T) {
 	assert.Error(t, cleanLogFile("noexist.log", "new.log"))
 	assert.Error(t, cleanLogFile(oldFile.Name(), "./nodir/new.log"))
 
-	assert.NoError(t, os.RemoveAll("./old.log"))
-	assert.NoError(t, os.RemoveAll("./new.log"))
+	assert.NoError(t, os.RemoveAll("old.log"))
+	assert.NoError(t, os.RemoveAll("new.log"))
 }
