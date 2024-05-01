@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/kmulvey/imageconvert/v2/internal/app/imageconvert"
@@ -16,6 +17,8 @@ import (
 )
 
 var randSource *rand.Rand
+var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+var letterMutex sync.RWMutex
 
 func init() {
 	// rand here is used to generate random strings, it does not need to be crypto secure so we suppress the linter warning
@@ -93,6 +96,7 @@ func validCharacter(r rune) bool {
 }
 
 func randomCharacter() string {
-	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+	letterMutex.RLock()
+	defer letterMutex.RUnlock()
 	return string(letters[randSource.Intn(len(letters))])
 }
