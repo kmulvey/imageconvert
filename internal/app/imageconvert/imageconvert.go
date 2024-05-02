@@ -14,11 +14,11 @@ import (
 type ImageConverter struct {
 	Compress              bool
 	Force                 bool
+	Watch                 bool
 	ResizeWidth           uint16
 	ResizeWidthThreshold  uint16
 	ResizeHeight          uint16
 	ResizeHeightThreshold uint16
-	Watch                 bool
 	Threads               uint8
 	InputEntry            path.Entry
 	InputFiles            []path.Entry
