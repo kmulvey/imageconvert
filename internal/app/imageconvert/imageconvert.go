@@ -81,7 +81,7 @@ func (ic *ImageConverter) WithCompression() {
 	ic.Compress = true
 }
 
-// WithForce will process files even if ther are present in the skip file.
+// WithForce will process files even if there are present in the skip file.
 func (ic *ImageConverter) WithForce() {
 	ic.Force = true
 }
