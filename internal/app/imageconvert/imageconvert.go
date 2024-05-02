@@ -3,6 +3,7 @@ package imageconvert
 import (
 	"fmt"
 	"os"
+	"runtime"
 	"strings"
 
 	"github.com/kmulvey/goutils"
@@ -10,6 +11,7 @@ import (
 	"github.com/kmulvey/path"
 )
 
+// ImageConverter is the main config
 type ImageConverter struct {
 	Compress              bool
 	Force                 bool
@@ -28,10 +30,12 @@ type ImageConverter struct {
 	ShutdownCompleted []chan struct{}
 }
 
+// NewWithDefaults returns a new ImageConverter with conservative defaults. Use the WithX() functions to
+// further configure.
 func NewWithDefaults(inputPath, skipFile string, directoryDepth uint8) (ImageConverter, error) {
 
 	var ic = ImageConverter{
-		Threads:           1, // uint8(runtime.NumCPU() - 1),
+		Threads:           1,
 		ShutdownCompleted: make([]chan struct{}, 1),
 	}
 	var err error
@@ -66,19 +70,24 @@ func NewWithDefaults(inputPath, skipFile string, directoryDepth uint8) (ImageCon
 	return ic, nil
 }
 
+// Shutdown gracefully closes all chans and quits.
 func (ic *ImageConverter) Shutdown() {
 	close(ic.ShutdownTrigger)
 	<-goutils.MergeChannels(ic.ShutdownCompleted...)
 }
 
+// WithCompression will compress the images.
 func (ic *ImageConverter) WithCompression() {
 	ic.Compress = true
 }
 
+// WithForce will process files even if ther are present in the skip file.
 func (ic *ImageConverter) WithForce() {
 	ic.Force = true
 }
 
+// WithResize resizes images down to a size given by width X height greater than a threshold
+// given by widthThreshold X heightThreshold.
 func (ic *ImageConverter) WithResize(width, height, widthThreshold, heightThreshold uint16) {
 	ic.ResizeWidth = width
 	ic.ResizeWidthThreshold = widthThreshold
@@ -86,15 +95,24 @@ func (ic *ImageConverter) WithResize(width, height, widthThreshold, heightThresh
 	ic.ResizeHeightThreshold = heightThreshold
 }
 
+// WithWatch enables watching a directory for new or modified files.
 func (ic *ImageConverter) WithWatch() {
 	ic.Watch = true
 }
 
+// WithThreads specifies the number of CPU threads to use. The default is one but increacing this
+// will significaltny improve performance epsically when compressing images. Pass a positive number
+// of threads you wish to use, if 0 is passed, num cores - 1 will be set.
 func (ic *ImageConverter) WithThreads(threads uint8) {
-	ic.Threads = threads
-	ic.ShutdownCompleted = make([]chan struct{}, threads)
+	if threads == 0 {
+		ic.Threads = uint8(runtime.NumCPU() - 1)
+	} else {
+		ic.Threads = threads
+	}
+	ic.ShutdownCompleted = make([]chan struct{}, ic.Threads)
 }
 
+// WithTimeRange will set a time range within images must have been last modified in order to be considered for processing.
 func (ic *ImageConverter) WithTimeRange(tr humantime.TimeRange) {
 	ic.TimeRange = tr
 }
