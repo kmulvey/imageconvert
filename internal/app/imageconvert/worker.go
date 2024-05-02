@@ -10,6 +10,7 @@ import (
 	"github.com/kmulvey/path"
 )
 
+// ConversionResult is all the information about the image that was converted.
 type ConversionResult struct {
 	OriginalFileName  string
 	ConvertedFileName string

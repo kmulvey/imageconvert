@@ -21,6 +21,7 @@ var ImageExtensionRegex = regexp.MustCompile(".*.jpg$|.*.jpeg$|.*.png$|.*.webp$|
 // RenameExtensionRegex captures file extensions that we would like to rename to the extensions above.
 var RenameSuffixRegex = regexp.MustCompile(".*.jpeg$|.*.png$|.*.webp$|.*.JPG$|.*.JPEG$|.*.PNG$|.*.WEBP$")
 
+// NilTime is 0
 var NilTime = time.Time{}
 
 // ParseSkipMap reads the log from the last time this was run and

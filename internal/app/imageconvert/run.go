@@ -9,6 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// Start begins the conversion process and returns counts of each type of operation preformed.
 func (ic *ImageConverter) Start(results chan ConversionResult) (int, int, int, int, map[string]int, error) {
 
 	var resultChans = make([]chan ConversionResult, ic.Threads)
