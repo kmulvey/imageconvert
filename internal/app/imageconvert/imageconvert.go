@@ -3,6 +3,7 @@ package imageconvert
 import (
 	"fmt"
 	"os"
+	"runtime"
 	"strings"
 
 	"github.com/kmulvey/goutils"
@@ -31,7 +32,7 @@ type ImageConverter struct {
 func NewWithDefaults(inputPath, skipFile string, directoryDepth uint8) (ImageConverter, error) {
 
 	var ic = ImageConverter{
-		Threads:           1,
+		Threads:           uint8(runtime.NumCPU() - 1),
 		ShutdownCompleted: make([]chan struct{}, 1),
 	}
 	var err error
