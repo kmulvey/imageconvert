@@ -3,10 +3,14 @@ package imageconvert
 import (
 	"bytes"
 	"fmt"
+	"image"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/Kagami/go-avif"
 )
 
 // QualityCheck uses imagemagick to determine the quality of the image
@@ -81,6 +85,39 @@ func CompressJPEG(quality int, imagePath string) (bool, string, error) {
 	}
 
 	return false, outStr, nil
+}
+
+// quality 30
+func CompressAVIF(quality, threads int, imagePath string) error {
+
+	var src, err = os.Open(imagePath)
+	if err != nil {
+		return fmt.Errorf("error opening image: %s, error: %w", imagePath, err)
+	}
+
+	img, _, err := image.Decode(src)
+	if err != nil {
+		return fmt.Errorf("error decoding image: %s, error: %w", imagePath, err)
+	}
+
+	var outfile = filepath.Base(strings.ReplaceAll(imagePath, filepath.Ext(imagePath), ".avif"))
+	dst, err := os.Create(outfile)
+	if err != nil {
+		return fmt.Errorf("error creating new image: %s, error: %w", outfile, err)
+	}
+
+	var options = avif.Options{
+		Threads:        threads,
+		Speed:          avif.MaxSpeed,
+		Quality:        quality,
+		SubsampleRatio: nil,
+	}
+	err = avif.Encode(dst, img, &options)
+	if err != nil {
+		return fmt.Errorf("error encoding avif: %s, error: %w", outfile, err)
+	}
+
+	return nil
 }
 
 // EscapeFilePath escapes spaces in the filepath used for an exec() call.
