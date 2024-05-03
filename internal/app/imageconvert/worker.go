@@ -16,28 +16,7 @@ type ConversionResult struct {
 	Resized           bool
 }
 
-// conversionWorker reads from the file chan and does all the conversion work.
-func (ic *ImageConverter) conversionWorker(files chan path.Entry, results chan ConversionResult, done chan struct{}) {
-	defer close(results)
-	defer close(done)
-
-	for {
-		select {
-		case _, open := <-ic.ShutdownTrigger:
-			if !open {
-				return
-			}
-		case file, open := <-files:
-			if !open {
-				return
-			}
-			results <- ic.convertImage(file)
-		}
-	}
-}
-
 // convertImage resizes and converts images.
-// This is broken out from the conversionWorker for ease of testing.
 func (ic *ImageConverter) convertImage(originalFile path.Entry) ConversionResult {
 
 	var result = ConversionResult{
