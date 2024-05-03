@@ -28,9 +28,11 @@ type ImageConverter struct {
 	ShutdownTrigger   chan struct{}
 	ShutdownCompleted []chan struct{}
 	///////////
-	Quality        int
-	Threads        int
-	DeleteOriginal bool
+	OriginalImagesEntry path.Entry
+	Quality             int
+	Threads             int
+	Depth               uint8
+	DeleteOriginal      bool
 }
 
 // NewWithDefaults returns a new ImageConverter with conservative defaults. Use the WithX() functions to
