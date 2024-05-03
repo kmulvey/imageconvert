@@ -100,7 +100,7 @@ func CompressAVIF(quality, threads int, inputImagePath string) (string, error) {
 		return "", fmt.Errorf("error decoding image: %s, error: %w", inputImagePath, err)
 	}
 
-	var outputImagePath = filepath.Base(strings.ReplaceAll(inputImagePath, filepath.Ext(inputImagePath), ".avif"))
+	var outputImagePath = strings.ReplaceAll(inputImagePath, filepath.Ext(inputImagePath), ".avif")
 	dst, err := os.Create(outputImagePath)
 	if err != nil {
 		return "", fmt.Errorf("error creating new image: %s, error: %w", outputImagePath, err)
