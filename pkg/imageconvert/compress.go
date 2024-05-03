@@ -88,22 +88,22 @@ func CompressJPEG(quality int, imagePath string) (bool, string, error) {
 }
 
 // quality 30
-func CompressAVIF(quality, threads int, imagePath string) (string, error) {
+func CompressAVIF(quality, threads int, inputImagePath string) (string, error) {
 
-	var src, err = os.Open(imagePath)
+	var src, err = os.Open(inputImagePath)
 	if err != nil {
-		return "", fmt.Errorf("error opening image: %s, error: %w", imagePath, err)
+		return "", fmt.Errorf("error opening image: %s, error: %w", inputImagePath, err)
 	}
 
 	img, _, err := image.Decode(src)
 	if err != nil {
-		return "", fmt.Errorf("error decoding image: %s, error: %w", imagePath, err)
+		return "", fmt.Errorf("error decoding image: %s, error: %w", inputImagePath, err)
 	}
 
-	var outfile = filepath.Base(strings.ReplaceAll(imagePath, filepath.Ext(imagePath), ".avif"))
-	dst, err := os.Create(outfile)
+	var outputImagePath = filepath.Base(strings.ReplaceAll(inputImagePath, filepath.Ext(inputImagePath), ".avif"))
+	dst, err := os.Create(outputImagePath)
 	if err != nil {
-		return "", fmt.Errorf("error creating new image: %s, error: %w", outfile, err)
+		return "", fmt.Errorf("error creating new image: %s, error: %w", outputImagePath, err)
 	}
 
 	var options = avif.Options{
@@ -114,10 +114,10 @@ func CompressAVIF(quality, threads int, imagePath string) (string, error) {
 	}
 	err = avif.Encode(dst, img, &options)
 	if err != nil {
-		return "", fmt.Errorf("error encoding avif: %s, error: %w", outfile, err)
+		return "", fmt.Errorf("error encoding avif: %s, error: %w", outputImagePath, err)
 	}
 
-	return outfile, nil
+	return outputImagePath, nil
 }
 
 // EscapeFilePath escapes spaces in the filepath used for an exec() call.
