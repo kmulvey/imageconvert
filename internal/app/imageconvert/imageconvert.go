@@ -81,11 +81,6 @@ func (ic *ImageConverter) Shutdown() {
 	<-goutils.MergeChannels(ic.ShutdownCompleted...)
 }
 
-// WithCompression will compress the images.
-func (ic *ImageConverter) WithCompression() {
-	ic.Compress = true
-}
-
 // WithForce will process files even if there are present in the skip file.
 func (ic *ImageConverter) WithForce() {
 	ic.Force = true

@@ -7,7 +7,7 @@ import (
 )
 
 // Start begins the conversion process and returns counts of each type of operation preformed.
-func (ic *ImageConverter) Start(results chan ConversionResult) (int, int, error) {
+func (ic *ImageConverter) Start(ctx context.Context, results chan ConversionResult) (int, int, error) {
 
 	if ic.Watch {
 		var originalImages = make(chan path.WatchEvent)
@@ -41,7 +41,7 @@ func (ic *ImageConverter) Start(results chan ConversionResult) (int, int, error)
 			close(done)
 		}()
 
-		go path.WatchDir(context.Background(), ic.OriginalImagesEntry.AbsolutePath, ic.Depth, true, originalImages, errors)
+		go path.WatchDir(ctx, ic.OriginalImagesEntry.AbsolutePath, ic.Depth, true, originalImages, errors, path.NewDateWatchFilter(ic.TimeRange.From, ic.TimeRange.To))
 		<-done
 
 	} else {
