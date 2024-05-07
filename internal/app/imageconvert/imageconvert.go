@@ -73,10 +73,15 @@ func NewImageConverter(config *ImageConverterConfig) (*ImageConverter, error) {
 	}
 
 	// watch
-	if _, err := os.Stat(config.WatchDir); err != nil {
-		return ic, fmt.Errorf("error opening watch dir: %s, err: %w", config.WatchDir, err)
+	var watchDir = strings.TrimSpace(config.WatchDir)
+	if watchDir == "" {
+		ic.WatchDir = ""
 	} else {
-		ic.WatchDir = config.WatchDir
+		if _, err := os.Stat(watchDir); err != nil {
+			return ic, fmt.Errorf("error opening watch dir: %s, err: %w", watchDir, err)
+		} else {
+			ic.WatchDir = watchDir
+		}
 	}
 
 	// skip map & processed log
