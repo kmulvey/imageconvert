@@ -16,7 +16,7 @@ func TestNewWithDefaults(t *testing.T) {
 	var testdir = makeTestDir(t)
 	var testImage = moveImage(t, testdir, testPair{Name: "./testimages/realjpg.jpg", Type: "jpeg"})
 
-	var ic, err = NewWithDefaults(testImage, "", 0)
+	var ic, err = NewImageConverter(testImage, "", 0)
 	assert.Equal(t, uint8(1), ic.Threads)
 	assert.NoError(t, err)
 
@@ -51,7 +51,7 @@ func TestStartSlice(t *testing.T) {
 	// setup
 	var testdir = makeTestDir(t)
 
-	var ic, err = NewWithDefaults(testdir, "", 1)
+	var ic, err = NewImageConverter(testdir, "", 1)
 	assert.NoError(t, err)
 	assert.Equal(t, uint8(1), ic.Threads)
 	ic.WithCompression()

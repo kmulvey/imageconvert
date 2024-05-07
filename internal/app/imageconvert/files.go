@@ -2,15 +2,10 @@ package imageconvert
 
 import (
 	"bufio"
-	"context"
-	"errors"
-	"fmt"
-	"io/fs"
 	"os"
 	"regexp"
 	"time"
 
-	"github.com/fsnotify/fsnotify"
 	"github.com/kmulvey/path"
 	log "github.com/sirupsen/logrus"
 )
@@ -29,15 +24,7 @@ var NilTime = time.Time{}
 // If you want to reprocess, just delete the file.
 func (ic *ImageConverter) ParseSkipMap() (map[string]struct{}, error) {
 
-	var processedImages, err = os.OpenFile(ic.SkipMapEntry.String(), os.O_RDONLY, 0755)
-	if err != nil && errors.Is(err, fs.ErrNotExist) {
-		// if the file doesnt exist its not really an error so we just return an empty map
-		return make(map[string]struct{}), nil
-	} else if err != nil {
-		return nil, fmt.Errorf("unable to open skipMap file: %w", err)
-	}
-
-	var scanner = bufio.NewScanner(processedImages)
+	var scanner = bufio.NewScanner(ic.SkipMapFileHandle)
 	scanner.Split(bufio.ScanLines)
 	var compressedFiles = make(map[string]struct{})
 
@@ -45,69 +32,13 @@ func (ic *ImageConverter) ParseSkipMap() (map[string]struct{}, error) {
 		compressedFiles[scanner.Text()] = struct{}{}
 	}
 
-	return compressedFiles, processedImages.Close()
-}
-
-// getFileList filters the file list
-func (ic *ImageConverter) getFileList() ([]path.Entry, error) {
-
-	if ic.TimeRange.To == NilTime {
-		ic.TimeRange.To = time.Date(9999, 12, 31, 23, 59, 59, 0, time.UTC)
-	}
-	var dateFilter = path.NewDateEntitiesFilter(ic.TimeRange.From, ic.TimeRange.To)
-
-	skipMap, err := ic.ParseSkipMap()
-	if err != nil {
-		return nil, err
-	}
-	var skipFilter = path.NewSkipMapEntitiesFilter(skipMap)
-
-	var extensionFilter = path.NewRegexEntitiesFilter(ImageExtensionRegex)
-
-	trimmedFileList, err := ic.InputEntry.Flatten(false)
-	if err != nil {
-		return nil, fmt.Errorf("error flatteneing entries: %w", err)
-	}
-
-	if !ic.Force {
-		trimmedFileList = path.FilterEntities(trimmedFileList, dateFilter, skipFilter, extensionFilter)
-	}
-
-	// these are all the files all the way down the dir tree
-	return trimmedFileList, nil
+	return compressedFiles, nil
 }
 
 // TimeOfEntry is a wrapper struct for waitTilFileWritesComplete
 type TimeOfEntry struct {
 	path.WatchEvent
 	time.Time
-}
-
-// watchDir watches the given dir in a blocking manner with optional filters. Results are sent back on the files chan.
-func (ic *ImageConverter) watchDir(files chan path.WatchEvent) {
-
-	var ctx, cancel = context.WithCancel(context.Background())
-	defer cancel()
-
-	if ic.TimeRange.To == NilTime {
-		ic.TimeRange.To = time.Date(9999, 12, 31, 23, 59, 59, 0, time.UTC)
-	}
-	var dateFilter = path.NewDateWatchFilter(ic.TimeRange.From, ic.TimeRange.To)
-	var skipFilter = path.NewSkipMapWatchFilter(ic.SkipMap)
-	var extensionFilter = path.NewRegexWatchFilter(ImageExtensionRegex)
-	var errors = make(chan error)
-
-	go func() {
-		for range errors {
-			// we dont really care for now but must drain this chan
-		}
-	}()
-
-	if ic.Force {
-		path.WatchDir(ctx, ic.InputEntry.String(), 1, false, files, errors, extensionFilter, path.NewOpWatchFilter(fsnotify.Create))
-	} else {
-		path.WatchDir(ctx, ic.InputEntry.String(), 1, false, files, errors, dateFilter, skipFilter, extensionFilter, path.NewOpWatchFilter(fsnotify.Create))
-	}
 }
 
 // waitTilFileWritesComplete is a way to debounce fs events because fsnotify does not send us an event when the file is

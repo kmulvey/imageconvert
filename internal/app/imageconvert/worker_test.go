@@ -17,7 +17,7 @@ func TestConvertImage(t *testing.T) {
 	// setup
 	var testdir = makeTestDir(t)
 	var testImage = moveImage(t, testdir, testPair{Name: "./testimages/testwebp.webp", Type: "jpeg"})
-	var ic, err = NewWithDefaults(testImage, "", 0)
+	var ic, err = NewImageConverter(testImage, "", 0)
 	ic.WithCompression()
 	ic.WithResize(200, 100, 300, 200)
 	assert.NoError(t, err)

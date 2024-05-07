@@ -7,9 +7,13 @@ import (
 )
 
 // Start begins the conversion process and returns counts of each type of operation preformed.
+// force
+// time range
+// check skip map
+// done - > write to skip map
 func (ic *ImageConverter) Start(ctx context.Context, results chan ConversionResult) (int, int, error) {
 
-	if ic.Watch {
+	if ic.WatchDir != "" {
 		var originalImages = make(chan path.WatchEvent)
 		var errors = make(chan error)
 		var done = make(chan struct{})
@@ -33,31 +37,39 @@ func (ic *ImageConverter) Start(ctx context.Context, results chan ConversionResu
 						originalImagesOpen = false
 						continue
 					}
-					if !originalImage.Entry.FileInfo.IsDir() {
+					var _, exists = ic.SkipMap[originalImage.AbsolutePath]
+
+					if !originalImage.Entry.FileInfo.IsDir() && !exists {
+
+						var result = ic.convertImage(originalImage.Entry)
 						results <- ic.convertImage(originalImage.Entry)
+						if result.Error == nil {
+							ic.SkipMapFileHandle.WriteString(originalImage.AbsolutePath + "\n")
+							ic.SkipMap[originalImage.AbsolutePath] = struct{}{}
+						}
 					}
 				}
 			}
 			close(done)
 		}()
 
-		go path.WatchDir(ctx, ic.OriginalImagesEntry.AbsolutePath, ic.Depth, true, originalImages, errors, path.NewDateWatchFilter(ic.TimeRange.From, ic.TimeRange.To))
+		go path.WatchDir(ctx, ic.WatchDir, ic.Depth, true, originalImages, errors, path.NewDateWatchFilter(ic.TimeRange.From, ic.TimeRange.To))
 		<-done
 
 	} else {
 
-		originalImages, err := ic.OriginalImagesEntry.Flatten(true)
-		if err != nil {
-			return 0, 0, err
-		}
-
 		var resizedTotal, totalProcessed int
-		for i, image := range originalImages {
-			if !image.FileInfo.IsDir() {
-				var result = ic.convertImage(image)
-				if err != nil {
-					return 0, 0, err
+		for i, originalImage := range ic.OriginalImagesEntries {
+
+			var _, exists = ic.SkipMap[originalImage.AbsolutePath]
+
+			if !originalImage.FileInfo.IsDir() && !exists {
+				var result = ic.convertImage(originalImage)
+				if result.Error != nil {
+					return 0, 0, result.Error
 				}
+				ic.SkipMapFileHandle.WriteString(originalImage.AbsolutePath + "\n")
+				ic.SkipMap[originalImage.AbsolutePath] = struct{}{}
 
 				if result.Resized {
 					resizedTotal++
