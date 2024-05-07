@@ -7,10 +7,6 @@ import (
 )
 
 // Start begins the conversion process and returns counts of each type of operation preformed.
-// force
-// time range
-// check skip map
-// done - > write to skip map
 func (ic *ImageConverter) Start(ctx context.Context, results chan ConversionResult) (int, int, error) {
 
 	if ic.WatchDir != "" {
@@ -39,7 +35,7 @@ func (ic *ImageConverter) Start(ctx context.Context, results chan ConversionResu
 					}
 					var _, exists = ic.SkipMap[originalImage.AbsolutePath]
 
-					if !originalImage.Entry.FileInfo.IsDir() && !exists {
+					if (!originalImage.Entry.FileInfo.IsDir() && !exists) || ic.Force {
 
 						var result = ic.convertImage(originalImage.Entry)
 						results <- ic.convertImage(originalImage.Entry)
@@ -63,7 +59,7 @@ func (ic *ImageConverter) Start(ctx context.Context, results chan ConversionResu
 
 			var _, exists = ic.SkipMap[originalImage.AbsolutePath]
 
-			if !originalImage.FileInfo.IsDir() && !exists {
+			if (!originalImage.FileInfo.IsDir() && !exists) || ic.Force {
 				var result = ic.convertImage(originalImage)
 				if result.Error != nil {
 					return 0, 0, result.Error
