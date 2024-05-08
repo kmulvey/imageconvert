@@ -2,12 +2,10 @@ package imageconvert
 
 import (
 	"bufio"
-	"os"
 	"regexp"
 	"time"
 
 	"github.com/kmulvey/path"
-	log "github.com/sirupsen/logrus"
 )
 
 // ImageExtensionRegex captures file extensions we can work with.
@@ -41,6 +39,7 @@ type TimeOfEntry struct {
 	time.Time
 }
 
+/*
 // waitTilFileWritesComplete is a way to debounce fs events because fsnotify does not send us an event when the file is
 // closed after writing so we just get a CREATE and a lot of WRITES. We gather the WRITE events and wait 200ms to see if
 // they finish for a given file and if they do we send the event on the eventsOut chan.
@@ -104,3 +103,4 @@ func hasEOI(filepath string) bool {
 
 	return false
 }
+*/

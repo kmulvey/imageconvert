@@ -36,11 +36,13 @@ func (ic *ImageConverter) Watch(ctx context.Context, results chan ConversionResu
 				if (!originalImage.Entry.FileInfo.IsDir() && !exists) || ic.Force {
 
 					var result = ic.convertImage(originalImage.Entry)
-					results <- ic.convertImage(originalImage.Entry)
 					if result.Error == nil {
-						ic.SkipMapFileHandle.WriteString(originalImage.AbsolutePath + "\n")
+						if _, err := ic.SkipMapFileHandle.WriteString(originalImage.AbsolutePath + "\n"); err != nil {
+							result.Error = err
+						}
 						ic.SkipMap[originalImage.AbsolutePath] = struct{}{}
 					}
+					results <- ic.convertImage(originalImage.Entry)
 				}
 			}
 		}
@@ -65,7 +67,9 @@ func (ic *ImageConverter) Start() (int, int, error) {
 				return 0, 0, result.Error
 			}
 
-			ic.SkipMapFileHandle.WriteString(originalImage.AbsolutePath + "\n")
+			if _, err := ic.SkipMapFileHandle.WriteString(originalImage.AbsolutePath + "\n"); err != nil {
+				return 0, 0, err
+			}
 			ic.SkipMap[originalImage.AbsolutePath] = struct{}{}
 
 			if result.Resized {

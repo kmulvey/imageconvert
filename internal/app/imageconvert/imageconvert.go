@@ -112,11 +112,12 @@ func NewImageConverter(config *ImageConverterConfig) (*ImageConverter, error) {
 	}
 
 	// threads
-	if config.Threads < 0 || config.Threads > uint8(runtime.NumCPU()) {
+	switch {
+	case config.Threads > uint8(runtime.NumCPU()):
 		return nil, fmt.Errorf("threads: %d is not in range %d-%d", config.Threads, 0, runtime.NumCPU())
-	} else if config.Threads == 0 {
+	case config.Threads == 0:
 		ic.Threads = runtime.NumCPU() - 1
-	} else {
+	default:
 		ic.Threads = int(config.Threads)
 	}
 
