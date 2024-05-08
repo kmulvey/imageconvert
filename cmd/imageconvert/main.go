@@ -63,7 +63,7 @@ func main() {
 
 	log.Infof("Config: dir: %s, log file: %s, compress: %t, force: %t, watch: %t, threads: %d, modified-since: %s", inputPath, processedLogFile, compress, force, watch, threads, tr)
 
-	var ic, err = imageconvert.NewWithDefaults(inputPath, processedLogFile, uint8(directoryDepth))
+	var ic, err = imageconvert.NewImageConverter(inputPath, processedLogFile, uint8(directoryDepth))
 	if err != nil {
 		log.Fatalf("error starting: %s", err)
 	}
