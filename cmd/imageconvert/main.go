@@ -2,8 +2,8 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
-	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -22,19 +22,20 @@ func main() {
 	})
 
 	// get the user options
-	var inputPath, processedLogFile, resizeThreshold, resizeSize string
-	var compress, force, watch, v, h bool
-	var threads, directoryDepth int
+	var images, skipMapFile, resizeThreshold, resizeSize string
+	var deleteOriginal, force, watch, v, h bool
+	var threads, quality, directoryDepth int
 	var tr humantime.TimeRange
 
-	flag.StringVar(&inputPath, "path", "", "path to files, globbing must be quoted")
-	flag.StringVar(&processedLogFile, "processed-file", "processed.log", "the file to write processes images to, so that we dont processes them again next time")
+	flag.StringVar(&images, "images", "", "path to images, globbing and multiple paths must be quoted")
+	flag.StringVar(&skipMapFile, "skip-map-file", "processed.log", "the file to write processes images to, so that we dont processes them again next time")
 	flag.StringVar(&resizeThreshold, "resize-threshold", "", "the min size to consider for resizing in the formate [width]x[height] e.g. 2560x1440")
 	flag.StringVar(&resizeSize, "resize-size", "", "the size to resize the images to while preserving the aspect ratio [width]x[height] e.g. 5120x2880")
 	flag.IntVar(&threads, "threads", 1, "number of threads to use")
+	flag.IntVar(&quality, "quality", 30, "avif quality to use")
 	flag.IntVar(&directoryDepth, "depth", 1, "number levels to search directories for images")
 	flag.Var(&tr, "time-range", "process files chnaged since this time")
-	flag.BoolVar(&compress, "compress", true, "compress")
+	flag.BoolVar(&deleteOriginal, "delete-original", false, "delete original files")
 	flag.BoolVar(&force, "force", false, "force")
 	flag.BoolVar(&watch, "watch", false, "watch the dir")
 	flag.BoolVar(&v, "version", false, "print version")
@@ -56,67 +57,75 @@ func main() {
 		os.Exit(0)
 	}
 
-	if threads <= 0 || threads > runtime.GOMAXPROCS(0) {
-		threads = 1
-		log.Infof("invalid thread count: %d, setting threads to 1", threads)
-	}
-
-	log.Infof("Config: dir: %s, log file: %s, compress: %t, force: %t, watch: %t, threads: %d, modified-since: %s", inputPath, processedLogFile, compress, force, watch, threads, tr)
-
-	var ic, err = imageconvert.NewImageConverter(inputPath, processedLogFile, uint8(directoryDepth))
+	var width, height, widthThreshold, heightThreshold, err = parseResize(resizeThreshold, resizeSize)
 	if err != nil {
-		log.Fatalf("error starting: %s", err)
+		log.Fatal(err)
 	}
 
-	if compress {
-		ic.WithCompression()
+	var imagesArr = strings.Split(images, " ")
+
+	var config = &imageconvert.ImageConverterConfig{
+		OriginalImages:        imagesArr,
+		Threads:               uint8(threads),
+		Quality:               uint8(quality),
+		SkipMapFile:           skipMapFile,
+		ResizeWidth:           width,
+		ResizeWidthThreshold:  widthThreshold,
+		ResizeHeight:          height,
+		ResizeHeightThreshold: heightThreshold,
+		TimeRange:             tr,
+		Force:                 force,
+		DeleteOriginal:        deleteOriginal,
+		// TODO: WatchDir:
 	}
 
-	if force {
-		ic.WithForce()
+	log.Infof(`Config: 
+OriginalImages: 		%+v,
+SkipMapFile:			%s,
+Threads:			%d,
+Quality:			%d,
+Resize:				%s,
+ResizeThreshold:		%s,
+TimeRange From:			%s,
+TimeRange To:			%s,
+Force:				%t,
+DeleteOriginal:			%t,
+	`, imagesArr, skipMapFile, threads, quality, resizeSize, resizeThreshold, tr.From, tr.To, force, deleteOriginal)
+
+	ic, err := imageconvert.NewImageConverter(config)
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	resizeThreshold = strings.TrimSpace(resizeThreshold)
-	if resizeThreshold != "" {
-
-		var thresholdArr = strings.Split(resizeThreshold, "x")
-		if len(thresholdArr) != 2 {
-			log.Fatalf("resize threshold not in the format: [width]x[height] e.g. 230x400, input: %s, error: %s", resizeThreshold, err)
-		}
-
-		var sizeArr = strings.Split(resizeSize, "x")
-		if len(sizeArr) != 2 {
-			log.Fatalf("resize size not in the format: [width]x[height] e.g. 230x400, input: %s, error: %s", sizeArr, err)
-		}
-
-		ic.WithResize(getResizeValue(sizeArr[0]), getResizeValue(sizeArr[1]), getResizeValue(thresholdArr[0]), getResizeValue(thresholdArr[1]))
-	}
-
-	if watch {
-		ic.WithWatch()
-	}
-
-	if threads > 1 {
-		ic.WithThreads(uint8(threads))
-	}
-
-	if tr.From != imageconvert.NilTime || tr.To != imageconvert.NilTime {
-		ic.WithTimeRange(tr)
-	}
-
-	compressedTotal, renamedTotal, resizedTotal, totalFiles, conversionTypeTotals, err := ic.Start(nil)
+	processedTotal, resizedTotal, err := ic.Start()
 	if err != nil {
 		log.Error(err)
 	}
 
 	log.WithFields(log.Fields{
-		"converted pngs":   conversionTypeTotals["png"],
-		"converted webps":  conversionTypeTotals["webp"],
-		"compressed":       compressedTotal,
-		"jpegs renamed":    renamedTotal,
-		"resized":          resizedTotal,
-		"total files seen": totalFiles,
+		"resized":               resizedTotal,
+		"total files processed": processedTotal,
 	}).Info("Done")
+}
+
+func parseResize(resizeThreshold, resizeSize string) (uint16, uint16, uint16, uint16, error) {
+
+	resizeThreshold = strings.TrimSpace(resizeThreshold)
+	resizeSize = strings.TrimSpace(resizeSize)
+
+	if resizeThreshold != "" {
+		var thresholdArr = strings.Split(resizeThreshold, "x")
+		if len(thresholdArr) != 2 {
+			return 0, 0, 0, 0, fmt.Errorf("resize threshold not in the format: [width]x[height] e.g. 230x400, input: %s", resizeThreshold)
+		}
+
+		var sizeArr = strings.Split(resizeSize, "x")
+		if len(sizeArr) != 2 {
+			return 0, 0, 0, 0, fmt.Errorf("resize size not in the format: [width]x[height] e.g. 230x400, input: %s", sizeArr)
+		}
+		return getResizeValue(sizeArr[0]), getResizeValue(sizeArr[1]), getResizeValue(thresholdArr[0]), getResizeValue(thresholdArr[1]), nil
+	}
+	return 0, 0, 0, 0, nil
 }
 
 func getResizeValue(str string) uint16 {
