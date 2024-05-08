@@ -57,9 +57,14 @@ func NewImageConverter(config *ImageConverterConfig) (*ImageConverter, error) {
 	}
 	var err error
 
+	var filters = []path.EntriesFilter{path.NewRegexEntitiesFilter(ImageExtensionRegex)}
+	if config.TimeRange.From != NilTime || config.TimeRange.To != NilTime {
+		filters = append(filters, path.NewDateEntitiesFilter(config.TimeRange.From, config.TimeRange.To))
+	}
+
 	// file / dir list
 	for _, original := range config.OriginalImages {
-		entry, err := path.NewEntry(original, config.Depth, path.NewRegexEntitiesFilter(ImageExtensionRegex), path.NewDateEntitiesFilter(config.TimeRange.From, config.TimeRange.To))
+		entry, err := path.NewEntry(original, config.Depth, filters...)
 		if err != nil {
 			return nil, err
 		}
