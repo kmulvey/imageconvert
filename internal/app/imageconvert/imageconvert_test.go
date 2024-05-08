@@ -1,6 +1,7 @@
 package imageconvert
 
 import (
+	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -43,17 +44,21 @@ func TestNewImageConverterGood(t *testing.T) {
 	assert.NoError(t, ic.Shutdown())
 	assert.NoError(t, os.RemoveAll("processed.log"))
 
-	// threads 0
+	// threads 0 & entire dir
+	var testdirTwo = makeTestDir(t)
 	config = &ImageConverterConfig{
-		OriginalImages: []string{testImage},
 		Threads:        0,
+		Depth:          2,
 		Quality:        30,
+		OriginalImages: []string{testdir, testdirTwo},
 	}
+	fmt.Println(testdir)
 	ic, err = NewImageConverter(config)
 	assert.NoError(t, err)
+	assert.Equal(t, 5, len(ic.OriginalImagesEntries))
 	assert.NoError(t, ic.Shutdown())
 
-	assert.NoError(t, os.RemoveAll(testdir))
+	// assert.NoError(t, os.RemoveAll(testdir))
 }
 
 func TestNewImageConverterBasicErrors(t *testing.T) {
