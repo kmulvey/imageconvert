@@ -2,6 +2,7 @@ package imageconvert
 
 import (
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -41,5 +42,57 @@ func TestNewImageConverterGood(t *testing.T) {
 
 	assert.NoError(t, ic.Shutdown())
 	assert.NoError(t, os.RemoveAll("processed.log"))
+
+	// threads 0
+	config = &ImageConverterConfig{
+		OriginalImages: []string{testImage},
+		Threads:        0,
+		Quality:        30,
+	}
+	ic, err = NewImageConverter(config)
+	assert.NoError(t, err)
+	assert.NoError(t, ic.Shutdown())
+
+	assert.NoError(t, os.RemoveAll(testdir))
+}
+
+func TestNewImageConverterBasicErrors(t *testing.T) {
+	t.Parallel()
+
+	var testdir = makeTestDir(t)
+	var testImage = moveImage(t, testdir, testPair{Name: "./testimages/realjpg.jpg", Type: "jpeg"})
+
+	// bad quality
+	var config = &ImageConverterConfig{
+		OriginalImages: []string{testImage},
+		Threads:        1,
+		Quality:        255,
+	}
+	_, err := NewImageConverter(config)
+	assert.Error(t, err)
+	assert.Equal(t, "quality: 255 is not in range 0-63", err.Error())
+
+	// bad threads
+	config = &ImageConverterConfig{
+		OriginalImages: []string{testImage},
+		Threads:        255,
+		Quality:        30,
+	}
+	_, err = NewImageConverter(config)
+	assert.Error(t, err)
+	assert.True(t, strings.Contains(err.Error(), "threads: 255 is not in range 0-"))
+
+	// bad resize
+	config = &ImageConverterConfig{
+		OriginalImages:       []string{testImage},
+		Threads:              2,
+		Quality:              30,
+		ResizeWidth:          300,
+		ResizeWidthThreshold: 30,
+	}
+	_, err = NewImageConverter(config)
+	assert.Error(t, err)
+	assert.Equal(t, "resize height and width must be less than resize height and width thresholds", err.Error())
+
 	assert.NoError(t, os.RemoveAll(testdir))
 }
