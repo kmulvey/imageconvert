@@ -99,10 +99,7 @@ func NewImageConverter(config *ImageConverterConfig) (*ImageConverter, error) {
 		return ic, fmt.Errorf("error opening skip file: %s, err: %w", config.SkipMapFile, err)
 	}
 
-	ic.SkipMap, err = ic.ParseSkipMap()
-	if err != nil {
-		return ic, fmt.Errorf("error creating skipmap from file: %s, err: %w", config.SkipMapFile, err)
-	}
+	ic.SkipMap = ic.ParseSkipMap()
 
 	// quality
 	if config.Quality < avif.MinQuality || config.Quality > avif.MaxQuality {

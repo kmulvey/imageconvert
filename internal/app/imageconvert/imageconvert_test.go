@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/kmulvey/humantime"
 	"github.com/kmulvey/path"
 	"github.com/stretchr/testify/assert"
 )
@@ -45,15 +46,23 @@ func TestNewImageConverterGood(t *testing.T) {
 
 	// threads 0 & entire dir
 	var testdirTwo = makeTestDir(t)
+	ht, err := humantime.NewString2Time(time.UTC)
+	assert.NoError(t, err)
+	tr, err := ht.Parse("from May 8, 2009 5:57:51 PM to Sep 12, 2027 3:21:22 PM")
+	assert.NoError(t, err)
+
 	config = &ImageConverterConfig{
 		Threads:        0,
 		Depth:          2,
 		Quality:        30,
 		OriginalImages: []string{testdir, testdirTwo},
+		TimeRange:      *tr,
 	}
 	ic, err = NewImageConverter(config)
 	assert.NoError(t, err)
 	assert.Equal(t, 10, len(ic.OriginalImagesEntries))
+	assert.Equal(t, time.Date(2009, time.May, 8, 17, 57, 51, 0, time.UTC), ic.TimeRange.From)
+	assert.Equal(t, time.Date(2027, time.September, 12, 15, 21, 22, 0, time.UTC), ic.TimeRange.To)
 	assert.NoError(t, ic.Shutdown())
 
 	assert.NoError(t, os.RemoveAll("processed.log"))
@@ -76,6 +85,17 @@ func TestNewImageConverterBasicErrors(t *testing.T) {
 	_, err := NewImageConverter(config)
 	assert.Error(t, err)
 	assert.Equal(t, "quality: 255 is not in range 0-63", err.Error())
+
+	// bad skipmap
+	config = &ImageConverterConfig{
+		OriginalImages: []string{testImage},
+		SkipMapFile:    "/proc/kmsg",
+		Threads:        2,
+		Quality:        30,
+	}
+	_, err = NewImageConverter(config)
+	assert.Error(t, err)
+	assert.Equal(t, "error opening skip file: /proc/kmsg, err: open /proc/kmsg: permission denied", err.Error())
 
 	// bad threads
 	config = &ImageConverterConfig{
