@@ -20,7 +20,7 @@ var NilTime = time.Time{}
 // ParseSkipMap reads the log from the last time this was run and
 // puts those filenames in a map so we dont have to process them again
 // If you want to reprocess, just delete the file.
-func (ic *ImageConverter) ParseSkipMap() (map[string]struct{}, error) {
+func (ic *ImageConverter) ParseSkipMap() map[string]struct{} {
 
 	var scanner = bufio.NewScanner(ic.SkipMapFileHandle)
 	scanner.Split(bufio.ScanLines)
@@ -30,7 +30,7 @@ func (ic *ImageConverter) ParseSkipMap() (map[string]struct{}, error) {
 		compressedFiles[scanner.Text()] = struct{}{}
 	}
 
-	return compressedFiles, nil
+	return compressedFiles
 }
 
 // TimeOfEntry is a wrapper struct for waitTilFileWritesComplete
