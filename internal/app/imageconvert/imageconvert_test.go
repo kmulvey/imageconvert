@@ -40,5 +40,6 @@ func TestNewImageConverterGood(t *testing.T) {
 	assert.Equal(t, uint16(0), ic.ResizeHeightThreshold)
 
 	assert.NoError(t, ic.Shutdown())
+	assert.NoError(t, os.RemoveAll("processed.log"))
 	assert.NoError(t, os.RemoveAll(testdir))
 }

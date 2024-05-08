@@ -46,7 +46,7 @@ type ImageConverter struct {
 	Threads               int
 }
 
-// NewImageConverter returns a new ImageConverter.
+// NewImageConverter validates the given config and returns a new ImageConverter.
 func NewImageConverter(config *ImageConverterConfig) (*ImageConverter, error) {
 
 	// copy basic configs that do not need to be checked
