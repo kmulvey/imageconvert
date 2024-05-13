@@ -40,8 +40,8 @@ github.com/huandu/xstrings v1.4.0 h1:D17IlohoQq4UcpqD7fDk80P7l+lwAmlFaBHgOipl2FU
 github.com/huandu/xstrings v1.4.0/go.mod h1:y5/lhBue+AyNmUVz9RLU9xbLR0o4KIIExikq4ovT0aE=
 github.com/imdario/mergo v0.3.16 h1:wwQJbIsHYGMUyLSPrEq1CT16AhnhNJQ51+4fdHUnCl4=
 github.com/imdario/mergo v0.3.16/go.mod h1:WBLT9ZmE3lPoWsEzCh9LPo3TiwVN+ZKEjmz+hD27ysY=
-github.com/kmulvey/goutils v0.6.0 h1:N3ZW0f9jf0lzXE7/LeDNw1jBDHiKnvX89/D9F37h/lU=
-github.com/kmulvey/goutils v0.6.0/go.mod h1:piD3FiBNFCOGTorRV2yFpjOUQFXVO5IiCHx0Nmmom8g=
+github.com/kmulvey/goutils v0.7.0 h1:QVK00wS8HwcQPJST5O9Uh86urd1D3Qv9lFMckNTQGRw=
+github.com/kmulvey/goutils v0.7.0/go.mod h1:247v0tdQ+1AHQMH8NhKGqMcaUS09nQpSBmBb6na9mFM=
 github.com/kmulvey/humantime v0.4.4 h1:qbNqA5YVrDxOAPPCZpL7/KGlNAj5b4nRy1CwvqymIgg=
 github.com/kmulvey/humantime v0.4.4/go.mod h1:KvEx/whEznif/noiZ9eR4gFF41De003Tk7ZtRW6WCqg=
 github.com/kmulvey/path v1.22.0 h1:i4S+KBKeqvHdU9VGUNQAv+a/U6i1HhocHnvVzvBKANI=
