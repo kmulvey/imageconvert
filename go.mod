@@ -6,7 +6,7 @@ require (
 	github.com/briandowns/spinner v1.23.0
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/hectane/go-acl v0.0.0-20230122075934-ca0b05cb1adb
-	github.com/kmulvey/goutils v0.6.0
+	github.com/kmulvey/goutils v0.8.0
 	github.com/kmulvey/humantime v0.4.4
 	github.com/kmulvey/path v1.22.0
 	github.com/kmulvey/resize v1.1.0
@@ -27,7 +27,7 @@ require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
-	github.com/fatih/color v1.16.0 // indirect
+	github.com/fatih/color v1.17.0 // indirect
 	github.com/goccy/go-yaml v1.11.3 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
