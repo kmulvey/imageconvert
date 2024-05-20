@@ -18,7 +18,7 @@ func TestConvertErrors(t *testing.T) {
 	assert.Equal(t, "", format)
 	assert.True(t, strings.Contains(err.Error(), "error opening file for conversion, image: testImage, error: open testImage:"))
 
-	assert.NoError(t, os.WriteFile("testImage", make([]byte, 100), os.ModePerm))
+	assert.NoError(t, os.WriteFile("testImage", make([]byte, 100), 0600))
 	convertedImage, format, err = Convert("testImage")
 	assert.Equal(t, "", convertedImage)
 	assert.Equal(t, "", format)

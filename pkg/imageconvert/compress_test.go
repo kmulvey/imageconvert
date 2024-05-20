@@ -21,7 +21,7 @@ func TestQualityCheck(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, aboveThreshold)
 
-	assert.NoError(t, os.WriteFile(filepath.Join(testdir, "test.txt"), make([]byte, 10), os.ModePerm))
+	assert.NoError(t, os.WriteFile(filepath.Join(testdir, "test.txt"), make([]byte, 10), 0600))
 	aboveThreshold, err = QualityCheck(90, filepath.Join(testdir, "test.txt"))
 	assert.True(t, strings.HasPrefix(err.Error(), "error running identify on image:"))
 	assert.False(t, aboveThreshold)
@@ -57,7 +57,7 @@ func TestCompressJPEG(t *testing.T) {
 		assert.True(t, skipped)
 	}
 
-	assert.NoError(t, os.WriteFile(filepath.Join(testdir, "test.txt"), make([]byte, 10), os.ModePerm))
+	assert.NoError(t, os.WriteFile(filepath.Join(testdir, "test.txt"), make([]byte, 10), 0600))
 	compressed, _, err = CompressJPEG(90, filepath.Join(testdir, "test.txt"))
 	assert.True(t, strings.HasPrefix(err.Error(), "error running jpegoptim on image:"))
 	assert.False(t, compressed)
