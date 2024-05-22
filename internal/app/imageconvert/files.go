@@ -64,9 +64,16 @@ func (ic *ImageConverter) getFileList() ([]path.Entry, error) {
 
 	var extensionFilter = path.NewRegexEntitiesFilter(ImageExtensionRegex)
 
-	trimmedFileList, err := ic.InputEntry.Flatten(false)
+	trimmedFileList, err := ic.InputEntry.Flatten(true)
 	if err != nil {
 		return nil, fmt.Errorf("error flatteneing entries: %w", err)
+	}
+
+	// remove directories
+	for i, entry := range trimmedFileList {
+		if entry.IsDir() {
+			trimmedFileList = append(trimmedFileList[:i], trimmedFileList[i+1:]...)
+		}
 	}
 
 	if !ic.Force {
