@@ -70,11 +70,15 @@ func (ic *ImageConverter) getFileList() ([]path.Entry, error) {
 	}
 
 	// remove directories
+	var withoutDirs = make([]path.Entry, len(trimmedFileList))
+	var numImages int
 	for i, entry := range trimmedFileList {
-		if entry.IsDir() {
-			trimmedFileList = append(trimmedFileList[:i], trimmedFileList[i+1:]...)
+		if !entry.IsDir() && entry.AbsolutePath == "" {
+			withoutDirs[i] = entry
+			numImages++
 		}
 	}
+	trimmedFileList = withoutDirs[:numImages]
 
 	if !ic.Force {
 		trimmedFileList = path.FilterEntities(trimmedFileList, dateFilter, skipFilter, extensionFilter)
