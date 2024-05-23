@@ -64,28 +64,17 @@ func (ic *ImageConverter) getFileList() ([]path.Entry, error) {
 
 	var extensionFilter = path.NewRegexEntitiesFilter(ImageExtensionRegex)
 
-	trimmedFileList, err := ic.InputEntry.Flatten(true)
+	flattenedFileList, err := ic.InputEntry.Flatten(true)
 	if err != nil {
 		return nil, fmt.Errorf("error flatteneing entries: %w", err)
 	}
 
-	// remove directories
-	var withoutDirs = make([]path.Entry, len(trimmedFileList))
-	var numImages int
-	for i, entry := range trimmedFileList {
-		if !entry.IsDir() && entry.AbsolutePath == "" {
-			withoutDirs[i] = entry
-			numImages++
-		}
-	}
-	trimmedFileList = withoutDirs[:numImages]
-
 	if !ic.Force {
-		trimmedFileList = path.FilterEntities(trimmedFileList, dateFilter, skipFilter, extensionFilter)
+		flattenedFileList = path.FilterEntities(flattenedFileList, dateFilter, skipFilter, extensionFilter)
 	}
 
 	// these are all the files all the way down the dir tree
-	return trimmedFileList, nil
+	return flattenedFileList, nil
 }
 
 // TimeOfEntry is a wrapper struct for waitTilFileWritesComplete
