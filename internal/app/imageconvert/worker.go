@@ -75,8 +75,8 @@ func (ic *ImageConverter) convertImage(originalFile path.Entry) ConversionResult
 	}
 
 	// COMPRESS IT
-	if ic.Compress {
-		compressed, stdout, err := imageconvert.CompressJPEG(85, result.ConvertedFileName)
+	if ic.CompressQuality != 0 {
+		compressed, stdout, err := imageconvert.CompressJPEG(int(ic.CompressQuality), result.ConvertedFileName)
 		if err != nil {
 			result.Error = fmt.Errorf("error compressing image: %s, error: %w", originalFile, err)
 			return result

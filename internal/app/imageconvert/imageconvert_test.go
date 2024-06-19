@@ -20,8 +20,8 @@ func TestNewWithDefaults(t *testing.T) {
 	assert.Equal(t, uint8(1), ic.Threads)
 	assert.NoError(t, err)
 
-	ic.WithCompression()
-	assert.True(t, ic.Compress)
+	ic.WithCompression(90)
+	assert.Equal(t, 90, ic.CompressQuality)
 
 	ic.WithWatch()
 	assert.True(t, ic.Watch)
@@ -54,7 +54,7 @@ func TestStartSlice(t *testing.T) {
 	var ic, err = NewWithDefaults(testdir, "", 1)
 	assert.NoError(t, err)
 	assert.Equal(t, uint8(1), ic.Threads)
-	ic.WithCompression()
+	ic.WithCompression(90)
 
 	compressedTotal, renamedTotal, resizedTotal, totalFiles, conversionTypeTotals, err := ic.Start(nil)
 	assert.NoError(t, err)

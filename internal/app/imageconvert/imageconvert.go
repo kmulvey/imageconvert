@@ -13,7 +13,7 @@ import (
 
 // ImageConverter is the main config
 type ImageConverter struct {
-	Compress              bool
+	CompressQuality       uint8
 	Force                 bool
 	Watch                 bool
 	ResizeWidth           uint16
@@ -77,8 +77,8 @@ func (ic *ImageConverter) Shutdown() {
 }
 
 // WithCompression will compress the images.
-func (ic *ImageConverter) WithCompression() {
-	ic.Compress = true
+func (ic *ImageConverter) WithCompression(quality uint8) {
+	ic.CompressQuality = quality
 }
 
 // WithForce will process files even if there are present in the skip file.
