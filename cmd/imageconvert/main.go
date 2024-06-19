@@ -69,7 +69,7 @@ func main() {
 	}
 
 	if compress {
-		ic.WithCompression()
+		ic.WithCompression(90)
 	}
 
 	if force {
