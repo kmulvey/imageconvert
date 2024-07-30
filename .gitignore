@@ -20,3 +20,5 @@ cmd/imageconvert/upsized.sh
 cmd/trimlog/trimlog
 cmd/fixfilenames/fixfilenames
 .vscode
+
+dist/
