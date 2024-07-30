@@ -1,6 +1,6 @@
 module github.com/kmulvey/imageconvert/v2
 
-go 1.22.2
+go 1.22.5
 
 require (
 	github.com/briandowns/spinner v1.23.1
