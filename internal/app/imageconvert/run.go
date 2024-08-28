@@ -13,8 +13,7 @@ import (
 func (ic *ImageConverter) Start(results chan ConversionResult) (int, int, int, int, map[string]int, error) {
 
 	var resultChans = make([]chan ConversionResult, ic.Threads)
-	var i uint8
-	for i = 0; i < ic.Threads; i++ {
+	for i := 0; i < ic.Threads; i++ {
 		resultChans[i] = make(chan ConversionResult)
 	}
 
@@ -119,8 +118,7 @@ func processAndWaitForResults(resultChans []chan ConversionResult, conversionTyp
 func (ic *ImageConverter) startWatch(resultChans ...chan ConversionResult) {
 
 	var conversionChan = make(chan path.Entry)
-	var i uint8
-	for i = 0; i < ic.Threads; i++ {
+	for i := 0; i < ic.Threads; i++ {
 		var done = make(chan struct{})
 		go ic.conversionWorker(conversionChan, resultChans[i], done)
 		ic.ShutdownCompleted[i] = done
@@ -157,8 +155,7 @@ func (ic *ImageConverter) startWatch(resultChans ...chan ConversionResult) {
 func (ic *ImageConverter) startSlice(resultChans ...chan ConversionResult) {
 
 	var conversionChan = make(chan path.Entry)
-	var i uint8
-	for i = 0; i < ic.Threads; i++ {
+	for i := 0; i < ic.Threads; i++ {
 		var done = make(chan struct{})
 		go ic.conversionWorker(conversionChan, resultChans[i], done)
 		ic.ShutdownCompleted[i] = done

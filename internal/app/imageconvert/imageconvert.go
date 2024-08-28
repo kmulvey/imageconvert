@@ -20,7 +20,7 @@ type ImageConverter struct {
 	ResizeWidthThreshold  uint16
 	ResizeHeight          uint16
 	ResizeHeightThreshold uint16
-	Threads               uint8
+	Threads               int
 	InputEntry            path.Entry
 	InputFiles            []path.Entry
 	SkipMapEntry          path.Entry
@@ -103,9 +103,9 @@ func (ic *ImageConverter) WithWatch() {
 // WithThreads specifies the number of CPU threads to use. The default is one but increacing this
 // will significaltny improve performance epsically when compressing images. Pass a positive number
 // of threads you wish to use, if 0 is passed, num cores - 1 will be set.
-func (ic *ImageConverter) WithThreads(threads uint8) {
+func (ic *ImageConverter) WithThreads(threads int) {
 	if threads == 0 {
-		ic.Threads = uint8(runtime.NumCPU() - 1)
+		ic.Threads = runtime.NumCPU() - 1
 	} else {
 		ic.Threads = threads
 	}

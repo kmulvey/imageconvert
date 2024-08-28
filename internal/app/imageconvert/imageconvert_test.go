@@ -17,7 +17,7 @@ func TestNewWithDefaults(t *testing.T) {
 	var testImage = moveImage(t, testdir, testPair{Name: "./testimages/realjpg.jpg", Type: "jpeg"})
 
 	var ic, err = NewWithDefaults(testImage, "", 0)
-	assert.Equal(t, uint8(1), ic.Threads)
+	assert.Equal(t, 1, ic.Threads)
 	assert.NoError(t, err)
 
 	ic.WithCompression(uint8(90))
@@ -36,7 +36,7 @@ func TestNewWithDefaults(t *testing.T) {
 	assert.Equal(t, uint16(200), ic.ResizeHeightThreshold)
 
 	ic.WithThreads(3)
-	assert.Equal(t, uint8(3), ic.Threads)
+	assert.Equal(t, 3, ic.Threads)
 
 	ic.WithTimeRange(humantime.TimeRange{From: time.Time{}, To: time.Now()})
 	assert.Equal(t, time.Time{}, ic.TimeRange.From)
@@ -53,7 +53,7 @@ func TestStartSlice(t *testing.T) {
 
 	var ic, err = NewWithDefaults(testdir, "", 1)
 	assert.NoError(t, err)
-	assert.Equal(t, uint8(1), ic.Threads)
+	assert.Equal(t, 1, ic.Threads)
 	ic.WithCompression(uint8(90))
 
 	compressedTotal, renamedTotal, resizedTotal, totalFiles, conversionTypeTotals, err := ic.Start(nil)

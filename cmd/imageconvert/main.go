@@ -97,7 +97,7 @@ func main() {
 	}
 
 	if threads > 1 {
-		ic.WithThreads(uint8(threads))
+		ic.WithThreads(threads)
 	}
 
 	if tr.From != imageconvert.NilTime || tr.To != imageconvert.NilTime {
