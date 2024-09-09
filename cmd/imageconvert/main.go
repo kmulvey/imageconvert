@@ -63,6 +63,8 @@ func main() {
 
 	log.Infof("Config: dir: %s, log file: %s, compress: %t, force: %t, watch: %t, threads: %d, modified-since: %s", inputPath, processedLogFile, compress, force, watch, threads, tr)
 
+	// nolint here because of the uint8 conversion of directory depth
+	// nolint:gosec
 	var ic, err = imageconvert.NewWithDefaults(inputPath, processedLogFile, uint8(directoryDepth))
 	if err != nil {
 		log.Fatalf("error starting: %s", err)
@@ -126,5 +128,7 @@ func getResizeValue(str string) uint16 {
 		log.Fatalf("error resize value is not a number: '%s', err: %s", str, err.Error())
 	}
 
+	// nolint here because of the uint16 conversion
+	// nolint:gosec
 	return uint16(num)
 }
