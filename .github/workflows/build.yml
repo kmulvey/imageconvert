@@ -50,4 +50,4 @@ jobs:
           args: --timeout=5m
 
       - name: Govulncheck
-        uses: kmulvey/govulncheck-action@v1.2.0
+        uses: kmulvey/govulncheck-action@v1.3.0
