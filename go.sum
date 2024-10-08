@@ -37,8 +37,8 @@ github.com/hokaccha/go-prettyjson v0.0.0-20211117102719-0474bc63780f h1:7LYC+Yfk
 github.com/hokaccha/go-prettyjson v0.0.0-20211117102719-0474bc63780f/go.mod h1:pFlLw2CfqZiIBOx6BuCeRLCrfxBJipTY0nIOF/VbGcI=
 github.com/huandu/xstrings v1.5.0 h1:2ag3IFq9ZDANvthTwTiqSSZLjDc+BedvHPAp5tJy2TI=
 github.com/huandu/xstrings v1.5.0/go.mod h1:y5/lhBue+AyNmUVz9RLU9xbLR0o4KIIExikq4ovT0aE=
-github.com/kmulvey/goutils v0.8.0 h1:Pnh61sqWtuK4WkYLNiwVLnRcQ++/CjtTw5JMvK0PGqA=
-github.com/kmulvey/goutils v0.8.0/go.mod h1:247v0tdQ+1AHQMH8NhKGqMcaUS09nQpSBmBb6na9mFM=
+github.com/kmulvey/goutils v0.9.0 h1:av10cTGJonQdO5SZpOtzoKafl1bl2lq3xFbaP+egEdI=
+github.com/kmulvey/goutils v0.9.0/go.mod h1:O8Oknqw5XvI6TOfimNgrWXvB3DmRXtw00MKD78TedMA=
 github.com/kmulvey/humantime v0.4.4 h1:qbNqA5YVrDxOAPPCZpL7/KGlNAj5b4nRy1CwvqymIgg=
 github.com/kmulvey/humantime v0.4.4/go.mod h1:KvEx/whEznif/noiZ9eR4gFF41De003Tk7ZtRW6WCqg=
 github.com/kmulvey/path v1.22.0 h1:i4S+KBKeqvHdU9VGUNQAv+a/U6i1HhocHnvVzvBKANI=

@@ -1,12 +1,11 @@
 module github.com/kmulvey/imageconvert/v2
 
 go 1.23.1
-
 require (
 	github.com/briandowns/spinner v1.23.1
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/hectane/go-acl v0.0.0-20230122075934-ca0b05cb1adb
-	github.com/kmulvey/goutils v0.8.0
+	github.com/kmulvey/goutils v0.9.0
 	github.com/kmulvey/humantime v0.4.4
 	github.com/kmulvey/path v1.22.0
 	github.com/kmulvey/resize v1.1.0
