@@ -1,12 +1,12 @@
 module github.com/kmulvey/imageconvert/v2
 
-go 1.23.1
+go 1.23.2
 
 require (
 	github.com/briandowns/spinner v1.23.1
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/hectane/go-acl v0.0.0-20230122075934-ca0b05cb1adb
-	github.com/kmulvey/goutils v0.8.0
+	github.com/kmulvey/goutils v0.9.0
 	github.com/kmulvey/humantime v0.4.4
 	github.com/kmulvey/path v1.22.0
 	github.com/kmulvey/resize v1.1.0
@@ -14,7 +14,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.9.0
 	go.szostok.io/version v1.2.0
-	golang.org/x/image v0.20.0
+	golang.org/x/image v0.21.0
 )
 
 replace github.com/imdario/mergo => github.com/imdario/mergo v0.3.16
@@ -46,11 +46,11 @@ require (
 	github.com/shopspring/decimal v1.4.0 // indirect
 	github.com/spf13/cast v1.7.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	golang.org/x/crypto v0.27.0 // indirect
-	golang.org/x/exp v0.0.0-20240909161429-701f63a606c0 // indirect
+	golang.org/x/crypto v0.28.0 // indirect
+	golang.org/x/exp v0.0.0-20241009180824-f66d83c29e7c // indirect
 	golang.org/x/sync v0.8.0 // indirect
-	golang.org/x/sys v0.25.0 // indirect
-	golang.org/x/term v0.24.0 // indirect
+	golang.org/x/sys v0.26.0 // indirect
+	golang.org/x/term v0.25.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
