@@ -10,7 +10,7 @@ require (
 	github.com/kmulvey/humantime v0.4.4
 	github.com/kmulvey/path v1.22.0
 	github.com/kmulvey/resize v1.1.0
-	github.com/otiai10/copy v1.14.0
+	github.com/otiai10/copy v1.14.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.10.0
 	go.szostok.io/version v1.2.0
@@ -41,6 +41,7 @@ require (
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/muesli/termenv v0.15.2 // indirect
+	github.com/otiai10/mint v1.6.3 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/shopspring/decimal v1.4.0 // indirect
