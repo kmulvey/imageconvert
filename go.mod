@@ -3,7 +3,7 @@ module github.com/kmulvey/imageconvert/v2
 go 1.23.4
 
 require (
-	github.com/briandowns/spinner v1.23.1
+	github.com/briandowns/spinner v1.23.2
 	github.com/fsnotify/fsnotify v1.8.0
 	github.com/hectane/go-acl v0.0.0-20230122075934-ca0b05cb1adb
 	github.com/kmulvey/goutils v0.9.0
