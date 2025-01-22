@@ -47,8 +47,13 @@ func Convert(inputFile string) (string, string, error) {
 	// EXCEPT fake jpgs:
 	// A "fake jpeg" is an image that has the extension .jpg or .jpeg but is really a different format e.g. png image named "x.jpg".
 	// Basically dont trust file extensions.
-	if WouldOverwrite(inputFile) {
-		return inputFile, "", fmt.Errorf("converting %s would overwrite an existing jpeg, skipping", inputFile)
+	var fakeJPG bool
+	if ext == ".jpg" && imageType != "jpeg" {
+		fakeJPG = true
+	}
+
+	if WouldOverwrite(inputFile) && !fakeJPG {
+		return inputFile, imageType, fmt.Errorf("converting %s would overwrite an existing jpeg, skipping", inputFile)
 	}
 
 	out, err := os.Create(convertedFile)
@@ -56,22 +61,22 @@ func Convert(inputFile string) (string, string, error) {
 		return "", "", fmt.Errorf("error creating new image: %s, error: %s", inputFile, err.Error())
 	}
 
-	err = jpeg.Encode(out, imgData, &jpeg.Options{Quality: 100})
-	if err != nil {
+	if err := jpeg.Encode(out, imgData, &jpeg.Options{Quality: 100}); err != nil {
 		return "", "", fmt.Errorf("error encoding new image: %s, error: %s", inputFile, err.Error())
 	}
 
-	err = out.Close()
-	if err != nil {
+	if err := out.Close(); err != nil {
 		return "", "", fmt.Errorf("error closing new image: %s, error: %s", inputFile, err.Error())
 	}
 
 	if err := origFile.Close(); err != nil {
 		return "", "", fmt.Errorf("error closing new image: %s, error: %s", inputFile, err.Error())
 	}
-	err = os.Remove(inputFile)
-	if err != nil {
-		return "", "", fmt.Errorf("error removing image: %s, error: %s", inputFile, err.Error())
+
+	if !fakeJPG {
+		if err := os.Remove(inputFile); err != nil {
+			return "", "", fmt.Errorf("error removing image: %s, error: %s", inputFile, err.Error())
+		}
 	}
 
 	return convertedFile, imageType, nil
@@ -88,5 +93,6 @@ func WouldOverwrite(path string) bool {
 	if _, err := os.Stat(jpgPath); errors.Is(err, os.ErrNotExist) {
 		return false // there may be other errors but we live on the edge
 	}
+
 	return true
 }
