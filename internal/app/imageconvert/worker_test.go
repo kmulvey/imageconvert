@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/kmulvey/imageconvert/v2/testimages"
 	"github.com/kmulvey/path"
 	"github.com/stretchr/testify/assert"
 )
@@ -15,8 +16,9 @@ func TestConvertImage(t *testing.T) {
 	t.Parallel()
 
 	// setup
-	var testdir = makeTestDir(t)
-	var testImage = moveImage(t, testdir, testPair{Name: "./testimages/testwebp.webp", Type: "jpeg"})
+	var testdir = testimages.MakeTestDir(t)
+	var testImage = filepath.Join(testdir, "testwebp.webp")
+
 	var ic, err = NewWithDefaults(testImage, "", 0)
 	ic.WithCompression(uint8(90))
 	ic.WithResize(200, 100, 300, 200)
@@ -37,7 +39,7 @@ func TestConvertImage(t *testing.T) {
 
 	// copy test image into this dir
 	// we cant use moveImage() because we need to change the extension
-	from, err := os.Open("./testimages/realjpg.jpg")
+	from, err := os.Open(filepath.Join(testdir, "realjpg.jpg"))
 	assert.NoError(t, err)
 
 	testImage = filepath.Join(testdir, "realjpg.jpeg")

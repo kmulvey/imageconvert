@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/hectane/go-acl"
+	"github.com/kmulvey/imageconvert/v2/testimages"
 	"github.com/kmulvey/path"
 	"github.com/stretchr/testify/assert"
 )
@@ -17,7 +18,7 @@ func TestParseSkipMap(t *testing.T) {
 	t.Parallel()
 
 	// setup
-	var testdir = makeTestDir(t)
+	var testdir = testimages.MakeTestDir(t)
 	var handle, err = os.OpenFile(filepath.Join(testdir, "skipFile"), os.O_RDWR|os.O_CREATE, 0755)
 	assert.NoError(t, err)
 	_, err = handle.WriteString("realjpg.jpg")
@@ -53,7 +54,7 @@ func TestGetFileList(t *testing.T) {
 	t.Parallel()
 
 	// setup
-	var testdir = makeTestDir(t)
+	var testdir = testimages.MakeTestDir(t)
 	var handle, err = os.OpenFile(filepath.Join(testdir, "skipFile"), os.O_RDWR|os.O_CREATE, 0755)
 	assert.NoError(t, err)
 	_, err = handle.WriteString("realjpg.jpg")
@@ -80,10 +81,11 @@ func TestHasEOI(t *testing.T) {
 	t.Parallel()
 
 	// setup
-	var testdir = makeTestDir(t)
-	var testImage = moveImage(t, testdir, testPair{Name: "./testimages/realjpg.jpg", Type: "jpeg"})
+	var testdir = testimages.MakeTestDir(t)
+	var testImage = filepath.Join(testdir, "realjpg.jpg")
+
 	assert.True(t, hasEOI(testImage))
-	assert.False(t, hasEOI("./compress.go"))
+	assert.False(t, hasEOI("./files_test.go"))
 	assert.False(t, hasEOI("./doesnotexist"))
 
 	assert.NoError(t, os.RemoveAll(testdir))
@@ -93,8 +95,8 @@ func TestWaitTilFileWritesComplete(t *testing.T) {
 	t.Parallel()
 
 	// setup
-	var testdir = makeTestDir(t)
-	var testImage = moveImage(t, testdir, testPair{Name: "./testimages/realjpg.jpg", Type: "jpeg"})
+	var testdir = testimages.MakeTestDir(t)
+	var testImage = filepath.Join(testdir, "realjpg.jpg")
 	var fileAbs, err = filepath.Abs(testImage)
 	assert.NoError(t, err)
 
