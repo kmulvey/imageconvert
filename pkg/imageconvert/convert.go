@@ -18,6 +18,8 @@ import (
 // _ "image/png"
 // "image/jpeg"
 
+const imageExt = "jpeg"
+
 // Convert converts pngs and webps to jpeg, if successful the inputFile is deleted.
 // This first string returned is the name of the new file.
 // The second string returned is the type of the input image (png, webp), as detected from its encoding, not file name.
@@ -38,8 +40,8 @@ func Convert(inputFile string) (string, string, error) {
 	}
 
 	// dont bother converting jpegs
-	if imageType == "jpeg" {
-		return inputFile, "jpeg", nil
+	if imageType == imageExt {
+		return inputFile, imageExt, nil
 	}
 
 	// Dont convert images that would result in an overwrite
@@ -48,7 +50,7 @@ func Convert(inputFile string) (string, string, error) {
 	// A "fake jpeg" is an image that has the extension .jpg or .jpeg but is really a different format e.g. png image named "x.jpg".
 	// Basically dont trust file extensions.
 	var fakeJPG bool
-	if ext == ".jpg" && imageType != "jpeg" {
+	if ext == ".jpg" && imageType != imageExt {
 		fakeJPG = true
 	}
 

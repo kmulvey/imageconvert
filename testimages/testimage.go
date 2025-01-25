@@ -56,7 +56,7 @@ func MakeTestDir(t *testing.T) string {
 			data, err := io.ReadAll(file)
 			assert.NoError(t, err)
 
-			assert.NoError(t, os.WriteFile(filepath.Join(testdir, entry.Name()), data, os.ModePerm))
+			assert.NoError(t, os.WriteFile(filepath.Join(testdir, entry.Name()), data, 0600))
 			assert.NoError(t, file.Close())
 		}
 	}
