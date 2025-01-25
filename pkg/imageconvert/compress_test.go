@@ -8,15 +8,16 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/kmulvey/imageconvert/v2/testimages"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestQualityCheck(t *testing.T) {
 	t.Parallel()
 
-	var testdir = makeTestDir(t)
+	var testdir = testimages.MakeTestDir(t)
+	var testImage = filepath.Join(testdir, "realjpg.jpg")
 
-	var testImage = moveImage(t, testdir, testPair{Name: "./testimages/realjpg.jpg", Type: "jpeg"})
 	aboveThreshold, err := QualityCheck(90, testImage)
 	assert.NoError(t, err)
 	assert.True(t, aboveThreshold)
@@ -36,9 +37,9 @@ func TestQualityCheck(t *testing.T) {
 func TestCompressJPEG(t *testing.T) {
 	t.Parallel()
 
-	var testdir = makeTestDir(t)
+	var testdir = testimages.MakeTestDir(t)
+	var testImage = filepath.Join(testdir, "realjpg.jpg")
 
-	var testImage = moveImage(t, testdir, testPair{Name: "./testimages/realjpg.jpg", Type: "jpeg"})
 	var compressed, _, err = CompressJPEG(90, testImage)
 	assert.NoError(t, err)
 	assert.True(t, compressed)

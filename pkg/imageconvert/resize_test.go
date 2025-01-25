@@ -2,17 +2,18 @@ package imageconvert
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
+	"github.com/kmulvey/imageconvert/v2/testimages"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestResize(t *testing.T) {
 	t.Parallel()
 
-	// setup
-	var testdir = makeTestDir(t)
-	var testImage = moveImage(t, testdir, testPair{Name: "./testimages/realjpg.jpg", Type: "jpeg"})
+	var testdir = testimages.MakeTestDir(t)
+	var testImage = filepath.Join(testdir, "realjpg.jpg")
 
 	resized, err := Resize(testImage, 300, 200, 200, 100)
 	assert.NoError(t, err)
@@ -30,8 +31,7 @@ func TestResize(t *testing.T) {
 	assert.NoError(t, err)
 	assert.False(t, resized)
 
-	testImage = moveImage(t, testdir, testPair{Name: "./testimages/realjpg-portrait.jpg", Type: "jpeg"})
-
+	testImage = filepath.Join(testdir, "realjpg-portrait.jpg")
 	resized, err = Resize(testImage, 300, 200, 200, 100)
 	assert.NoError(t, err)
 	assert.True(t, resized)
