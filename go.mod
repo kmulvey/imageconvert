@@ -13,7 +13,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.10.0
 	go.szostok.io/version v1.2.0
-	golang.org/x/image v0.23.0
+	golang.org/x/image v0.24.0
 )
 
 replace github.com/imdario/mergo => github.com/imdario/mergo v0.3.16
