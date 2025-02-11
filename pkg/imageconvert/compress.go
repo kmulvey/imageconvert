@@ -80,8 +80,8 @@ func CompressJPEG(quality int, imagePath string) (bool, string, error) {
 		return true, outStr, nil
 	}
 
-	if err != nil || stderr.Len() > 0 {
-		return false, outStr, fmt.Errorf("error running jpegoptim on image: %s, error: %s, stdErr: %s, output: %s", imagePath, err.Error(), errStr, outStr)
+	if err != nil || len(errStr) > 0 {
+		return false, outStr, fmt.Errorf("error running jpegoptim on image: %s, error: %s, stdErr: %s, output: %s", imagePath, err, errStr, outStr)
 	}
 
 	return false, outStr, nil
