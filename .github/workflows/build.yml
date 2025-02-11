@@ -28,6 +28,12 @@ jobs:
           apt: jpegoptim imagemagick
           choco: jpegoptim ImageMagick
 
+      - name: Clean up before build
+        run: |
+          rm -rf ./tmp
+          mkdir -p ./tmp
+          rm -rf /home/runner/go/pkg/mod
+
       - name: Prepare
         run: |
           go clean -r ./...
