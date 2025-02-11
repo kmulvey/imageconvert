@@ -30,9 +30,9 @@ jobs:
 
       - name: Clean up before build
         run: |
-          rm -rf ./tmp
+          sudo rm -rf ./tmp
           mkdir -p ./tmp
-          rm -rf /home/runner/go/pkg/mod
+          sudo rm -rf /home/runner/go/pkg/mod
 
       - name: Prepare
         run: |
