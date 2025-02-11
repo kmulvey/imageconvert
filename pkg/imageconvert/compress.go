@@ -64,19 +64,23 @@ func CompressJPEG(quality int, imagePath string) (bool, string, error) {
 	var escapedImagePath = EscapeFilePath(imagePath)
 	// nolint here because its worried about the Itoa ... but why?!?!
 	// nolint:gosec
-	var cmd = exec.Command("jpegoptim", "-p", "-o", "-v", "-m", strconv.Itoa(quality), escapedImagePath)
+	cmdStr := fmt.Sprintf("jpegoptim -p -o -v -m %d %s", quality, escapedImagePath)
+
+	var cmd = exec.Command("sh", "-c", cmdStr)
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
+	cmd.Env = os.Environ() // Ensure the environment variables are the same as the terminal
+
 	var err = cmd.Run()
-	outStr, errStr := stdout.String(), stderr.String()
+	outStr, errStr := strings.TrimSpace(stdout.String()), strings.TrimSpace(stderr.String())
 
 	// check stdout first because we are getting some false 'exit status 1' in err
 	if strings.Contains(outStr, "optimized.") {
 		return true, outStr, nil
 	}
 
-	if err != nil {
+	if err != nil || stderr.Len() > 0 {
 		return false, outStr, fmt.Errorf("error running jpegoptim on image: %s, error: %s, stdErr: %s, output: %s", imagePath, err.Error(), errStr, outStr)
 	}
 
