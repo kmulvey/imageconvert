@@ -15,7 +15,7 @@ func QualityCheck(maxQuality int, imagePath string) (bool, error) {
 
 	// lint input, helps prevent arbitrary code execution
 	if _, err := os.Stat(imagePath); err != nil {
-		return false, err
+		return false, fmt.Errorf("error stating image: %s, err: %w", imagePath, err)
 	}
 
 	// have to escape the file spaces for the exec call
@@ -23,19 +23,18 @@ func QualityCheck(maxQuality int, imagePath string) (bool, error) {
 
 	// ubuntu does not use the 'magick' prefix, everything else does
 	var cmd = exec.Command("magick", "-version")
-	var err = cmd.Run()
-	if err != nil {
+	if err := cmd.Run(); err != nil {
 		cmd = exec.Command("identify", "-format", "'%Q'", imagePath)
 	} else {
 		cmd = exec.Command("magick", "identify", "-format", "'%Q'", imagePath)
 	}
+
 	var out bytes.Buffer
 	var stderr bytes.Buffer
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
 
-	err = cmd.Run()
-	if err != nil {
+	if err := cmd.Run(); err != nil {
 		return false, fmt.Errorf("error running identify on image: %s, error: %s, stderr: %s, output: %s", imagePath, err.Error(), stderr.String(), out.String())
 	}
 
@@ -57,7 +56,7 @@ func CompressJPEG(quality int, imagePath string) (bool, string, error) {
 
 	// lint input, helps prevent arbitrary code execution
 	if _, err := os.Stat(imagePath); err != nil {
-		return false, "", err
+		return false, "", fmt.Errorf("error stating image: %s, err: %w", imagePath, err)
 	}
 
 	// have to escape the file spaces for the exec call
