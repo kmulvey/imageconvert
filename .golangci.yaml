@@ -13,7 +13,7 @@ linters:
     - containedctx
       #- cyclop
       #- dupl
-    - exportloopref
+    # - exportloopref
     - gocritic
     - goconst
     - gosec
