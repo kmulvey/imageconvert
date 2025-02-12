@@ -35,7 +35,7 @@ var TestCases = []TestCase{
 }
 
 func MakeTestDir(t *testing.T) string {
-
+	t.Helper()
 	cwd, err := os.Getwd()
 	assert.NoError(t, err)
 
