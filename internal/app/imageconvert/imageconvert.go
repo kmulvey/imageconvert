@@ -42,7 +42,7 @@ func NewWithDefaults(inputPath, skipFile string, directoryDepth uint8) (ImageCon
 
 	ic.InputEntry, err = path.NewEntry(inputPath, directoryDepth)
 	if err != nil {
-		return ic, err
+		return ic, fmt.Errorf("unable to create new entry for path: %s, err: %w", inputPath, err)
 	}
 
 	if strings.TrimSpace(skipFile) == "" {

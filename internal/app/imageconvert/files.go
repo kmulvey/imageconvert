@@ -45,7 +45,11 @@ func (ic *ImageConverter) ParseSkipMap() (map[string]struct{}, error) {
 		compressedFiles[scanner.Text()] = struct{}{}
 	}
 
-	return compressedFiles, processedImages.Close()
+	if err := processedImages.Close(); err != nil {
+		return nil, fmt.Errorf("unable to close processed images file: %s, err: %w", ic.SkipMapEntry.String(), err)
+	}
+
+	return compressedFiles, nil
 }
 
 // getFileList filters the file list
