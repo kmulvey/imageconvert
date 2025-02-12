@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"image"
 	"image/jpeg"
-	_ "image/png"
 	"os"
 	"path/filepath"
 	"strings"
 
+	// make sure png is always imported here.
+	_ "image/png"
+	// make sure webp is always imported here.
 	_ "golang.org/x/image/webp"
 )
 
@@ -55,6 +57,7 @@ func Convert(inputFile string) (string, string, error) {
 	}
 
 	if WouldOverwrite(inputFile) && !fakeJPG {
+		// nolint: err113
 		return inputFile, imageType, errors.New("converting " + inputFile + " would overwrite an existing jpeg, skipping")
 	}
 
@@ -85,7 +88,7 @@ func Convert(inputFile string) (string, string, error) {
 }
 
 // WouldOverwrite looks to see if the file were to be converted to a jpeg,
-// would it overwite an existing jpg file with the same name
+// would it overwite an existing jpg file with the same name.
 func WouldOverwrite(path string) bool {
 
 	var ext = filepath.Ext(path)

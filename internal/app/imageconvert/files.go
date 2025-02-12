@@ -22,6 +22,7 @@ var ImageExtensionRegex = regexp.MustCompile(".*.jpg$|.*.jpeg$|.*.png$|.*.webp$|
 var RenameSuffixRegex = regexp.MustCompile(".*.jpeg$|.*.png$|.*.webp$|.*.JPG$|.*.JPEG$|.*.PNG$|.*.WEBP$")
 
 // NilTime is 0
+// nolint:gochecknoglobals
 var NilTime = time.Time{}
 
 // ParseSkipMap reads the log from the last time this was run and
@@ -52,7 +53,7 @@ func (ic *ImageConverter) ParseSkipMap() (map[string]struct{}, error) {
 	return compressedFiles, nil
 }
 
-// getFileList filters the file list
+// getFileList filters the file list.
 func (ic *ImageConverter) getFileList() ([]path.Entry, error) {
 
 	if ic.TimeRange.To == NilTime {
@@ -81,7 +82,7 @@ func (ic *ImageConverter) getFileList() ([]path.Entry, error) {
 	return flattenedFileList, nil
 }
 
-// TimeOfEntry is a wrapper struct for waitTilFileWritesComplete
+// TimeOfEntry is a wrapper struct for waitTilFileWritesComplete.
 type TimeOfEntry struct {
 	path.WatchEvent
 	time.Time
@@ -102,6 +103,7 @@ func (ic *ImageConverter) watchDir(files chan path.WatchEvent) {
 	var errors = make(chan error)
 
 	go func() {
+		// nolint:revive
 		for range errors {
 			// we dont really care for now but must drain this chan
 		}

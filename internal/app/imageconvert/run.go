@@ -69,41 +69,41 @@ func processAndWaitForResults(resultChans []chan ConversionResult, conversionTyp
 
 		if result.Error != nil {
 			log.Error(result.Error)
-		} else {
-
-			conversionTypeTotals[result.ImageType]++
-
-			if result.Compressed {
-				compressedTotal++
-			}
-
-			if result.Renamed {
-				renamedTotal++
-			}
-
-			if result.Resized {
-				resizedTotal++
-			}
-
-			var _, err = processedLog.WriteString(result.ConvertedFileName + "\n")
-			if err != nil {
-				return 0, 0, 0, fmt.Errorf("error writing to log file, error: %w", err)
-			}
-
-			var fields = log.Fields{
-				"original file name": result.OriginalFileName,
-				"new file name":      result.ConvertedFileName,
-				"type":               result.ImageType,
-				"compressed":         result.Compressed,
-				"progeress":          fmt.Sprintf("[%d/%d]", fileCount, totalFiles),
-				"renamed":            result.Renamed,
-				"resized":            result.Resized,
-			}
-			if result.Compressed {
-				fields["compressed output"] = result.CompressOutput
-			}
-			log.WithFields(fields).Info("Converted")
+			continue
 		}
+
+		conversionTypeTotals[result.ImageType]++
+
+		if result.Compressed {
+			compressedTotal++
+		}
+
+		if result.Renamed {
+			renamedTotal++
+		}
+
+		if result.Resized {
+			resizedTotal++
+		}
+
+		var _, err = processedLog.WriteString(result.ConvertedFileName + "\n")
+		if err != nil {
+			return 0, 0, 0, fmt.Errorf("error writing to log file, error: %w", err)
+		}
+
+		var fields = log.Fields{
+			"original file name": result.OriginalFileName,
+			"new file name":      result.ConvertedFileName,
+			"type":               result.ImageType,
+			"compressed":         result.Compressed,
+			"progeress":          fmt.Sprintf("[%d/%d]", fileCount, totalFiles),
+			"renamed":            result.Renamed,
+			"resized":            result.Resized,
+		}
+		if result.Compressed {
+			fields["compressed output"] = result.CompressOutput
+		}
+		log.WithFields(fields).Info("Converted")
 	}
 
 	return compressedTotal, renamedTotal, resizedTotal, nil
@@ -114,7 +114,7 @@ func processAndWaitForResults(resultChans []chan ConversionResult, conversionTyp
 // waitTilFileWritesComplete() debounces watchEvents and writes them to watchEventsDebounced
 // we read and dedup files from watchEventsDebounced and writes them to conversionChan
 // conversionWorker reads conversionWorker, converts the images and writes the results to the results chan
-// if no resultChans are passed in then processAndWaitForResults is used to read the results and log them
+// if no resultChans are passed in then processAndWaitForResults is used to read the results and log them.
 func (ic *ImageConverter) startWatch(resultChans ...chan ConversionResult) {
 
 	var conversionChan = make(chan path.Entry)
@@ -151,7 +151,7 @@ func (ic *ImageConverter) startWatch(resultChans ...chan ConversionResult) {
 // startSlice flow:
 // we loop over the ic.InputFiles and write them to conversionChan
 // conversionWorker reads conversionWorker, converts the images and writes the results to the results chan
-// if no resultChans are passed in then processAndWaitForResults is used to read the results and log them
+// if no resultChans are passed in then processAndWaitForResults is used to read the results and log them.
 func (ic *ImageConverter) startSlice(resultChans ...chan ConversionResult) {
 
 	var conversionChan = make(chan path.Entry)

@@ -45,7 +45,7 @@ func TestCompressJPEG(t *testing.T) {
 
 	// do it til it wont compress anymore
 	var skipped bool
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		compressed, _, err = CompressJPEG(90, testImage)
 		assert.NoError(t, err)
 		if !compressed {

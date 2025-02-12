@@ -11,8 +11,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// 1. make sure every file actually exists
-// 2. dedup entries
+// 1. make sure every file actually exists.
+// 2. dedup entries.
 func main() {
 	s := spinner.New(spinner.CharSets[9], 100*time.Millisecond) // Build our new spinner
 	s.Start()

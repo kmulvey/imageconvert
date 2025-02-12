@@ -25,6 +25,7 @@ type TestCase struct {
 	Err            bool
 }
 
+// nolint:gochecknoglobals
 var TestCases = []TestCase{
 	{InputPath: "test.png", OutputPath: "test.jpg", ImageType: "png", ShouldConvert: true, WouldOverwrite: false, Err: false},
 	{InputPath: "fakejpg.jpg", OutputPath: "fakejpg.jpg", ImageType: "png", ShouldConvert: true, WouldOverwrite: true, Err: false},
@@ -39,8 +40,7 @@ func MakeTestDir(t *testing.T) string {
 	cwd, err := os.Getwd()
 	assert.NoError(t, err)
 
-	var testdir = "testdir_" + goutils.RandomString(5)
-	testdir = filepath.Join(cwd, testdir)
+	var testdir = filepath.Join(cwd, "testdir_"+goutils.RandomString(5))
 
 	assert.NoError(t, os.MkdirAll(testdir, os.ModePerm))
 

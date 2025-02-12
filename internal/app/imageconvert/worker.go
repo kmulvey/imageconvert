@@ -47,7 +47,7 @@ func (ic *ImageConverter) conversionWorker(files chan path.Entry, results chan C
 // 1. does a file already exist with the output name? yes = skip
 // 2. convert it to jpg
 // 3. compress it (if enabled)
-// 4. reset the mod time
+// 4. reset the mod time.
 func (ic *ImageConverter) convertImage(originalFile path.Entry) ConversionResult {
 
 	var result = ConversionResult{

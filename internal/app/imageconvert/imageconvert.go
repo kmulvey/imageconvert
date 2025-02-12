@@ -11,7 +11,7 @@ import (
 	"github.com/kmulvey/path"
 )
 
-// ImageConverter is the main config
+// ImageConverter is the main config.
 type ImageConverter struct {
 	CompressQuality       uint8
 	Force                 bool

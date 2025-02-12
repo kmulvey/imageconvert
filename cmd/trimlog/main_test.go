@@ -42,7 +42,7 @@ func TestChangeFileName(t *testing.T) {
 		assert.True(t, found)
 		delete(expectedFileData, fileScanner.Text())
 	}
-	assert.Equal(t, 0, len(expectedFileData))
+	assert.Empty(t, expectedFileData)
 	assert.NoError(t, newFile.Close())
 
 	assert.NoError(t, os.RemoveAll(oldFile.Name()))

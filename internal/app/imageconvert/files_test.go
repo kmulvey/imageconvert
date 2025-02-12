@@ -114,7 +114,7 @@ func TestWaitTilFileWritesComplete(t *testing.T) {
 	var create = path.WatchEvent{Entry: DummyEntry, Op: 1}
 	var write = path.WatchEvent{Entry: DummyEntry, Op: 2}
 
-	for i := 0; i < 1000; i++ {
+	for i := range 1000 {
 		if i == 0 {
 			eventsIn <- create
 		} else {
