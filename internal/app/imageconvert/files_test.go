@@ -31,12 +31,12 @@ func TestParseSkipMap(t *testing.T) {
 
 	skipMap, err := ic.ParseSkipMap()
 	assert.NoError(t, err)
-	assert.Equal(t, 1, len(skipMap))
+	assert.Len(t, skipMap, 1)
 
 	ic.SkipMapEntry.AbsolutePath = ""
 	skipMap, err = ic.ParseSkipMap()
 	assert.NoError(t, err)
-	assert.Equal(t, 0, len(skipMap))
+	assert.Empty(t, skipMap)
 
 	// this is what will create the error in ParseSkipMap
 	ic.SkipMapEntry.AbsolutePath = filepath.Join(testdir, "skipFile")
@@ -71,7 +71,7 @@ func TestGetFileList(t *testing.T) {
 
 	entries, err := ic.getFileList()
 	assert.Error(t, err)
-	assert.Equal(t, 0, len(entries))
+	assert.Empty(t, entries)
 
 	assert.NoError(t, acl.Chmod(ic.SkipMapEntry.AbsolutePath, fs.ModePerm)) // for windows
 	assert.NoError(t, os.RemoveAll(testdir))

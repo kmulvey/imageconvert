@@ -4,7 +4,6 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/kmulvey/imageconvert/v2/testimages"
@@ -44,7 +43,7 @@ func TestConvertErrors(t *testing.T) {
 	var convertedImage, format, err = Convert("testImage")
 	assert.Equal(t, "", convertedImage)
 	assert.Equal(t, "", format)
-	assert.True(t, strings.Contains(err.Error(), "error opening file for conversion, image: testImage, error: open testImage:"))
+	assert.Contains(t, err.Error(), "error opening file for conversion, image: testImage, error: open testImage:")
 
 	assert.NoError(t, os.WriteFile("testImage", make([]byte, 100), 0600))
 	convertedImage, format, err = Convert("testImage")

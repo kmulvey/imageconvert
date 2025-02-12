@@ -35,13 +35,13 @@ func QualityCheck(maxQuality int, imagePath string) (bool, error) {
 	cmd.Stderr = &stderr
 
 	if err := cmd.Run(); err != nil {
-		return false, fmt.Errorf("error running identify on image: %s, error: %s, stderr: %s, output: %s", imagePath, err.Error(), stderr.String(), out.String())
+		return false, fmt.Errorf("error running identify on image: %s, error: %w, stderr: %s, output: %s", imagePath, err, stderr.String(), out.String())
 	}
 
 	var qualityStr = strings.ReplaceAll(out.String(), "'", "")
 	imageQuality, err := strconv.ParseInt(qualityStr, 10, 0)
 	if err != nil {
-		return false, fmt.Errorf("error parsing int for quality on image: %s, quality: %s, error: %s", imagePath, qualityStr, err.Error())
+		return false, fmt.Errorf("error parsing int for quality on image: %s, quality: %s, error: %w", imagePath, qualityStr, err)
 	}
 
 	return imageQuality >= int64(maxQuality), nil
@@ -80,7 +80,7 @@ func CompressJPEG(quality int, imagePath string) (bool, string, error) {
 	}
 
 	if err != nil {
-		return false, outStr, fmt.Errorf("error running jpegoptim on image: %s, error: %s, stdErr: %s, output: %s", imagePath, err, errStr, outStr)
+		return false, outStr, fmt.Errorf("error running jpegoptim on image: %s, error: %w, stdErr: %s, output: %s", imagePath, err, errStr, outStr)
 	}
 
 	return false, outStr, nil

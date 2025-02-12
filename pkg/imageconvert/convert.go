@@ -30,13 +30,13 @@ func Convert(inputFile string) (string, string, error) {
 
 	var origFile, err = os.OpenFile(inputFile, os.O_RDONLY, 0755)
 	if err != nil {
-		return "", "", fmt.Errorf("error opening file for conversion, image: %s, error: %s", inputFile, err.Error())
+		return "", "", fmt.Errorf("error opening file for conversion, image: %s, error: %w", inputFile, err)
 	}
 	defer origFile.Close()
 
 	imgData, imageType, err := image.Decode(origFile)
 	if err != nil {
-		return "", "", fmt.Errorf("error decoding image: %s, error: %s", inputFile, err.Error())
+		return "", "", fmt.Errorf("error decoding image: %s, error: %w", inputFile, err)
 	}
 
 	// dont bother converting jpegs
@@ -55,29 +55,29 @@ func Convert(inputFile string) (string, string, error) {
 	}
 
 	if WouldOverwrite(inputFile) && !fakeJPG {
-		return inputFile, imageType, fmt.Errorf("converting %s would overwrite an existing jpeg, skipping", inputFile)
+		return inputFile, imageType, errors.New("converting " + inputFile + " would overwrite an existing jpeg, skipping")
 	}
 
 	out, err := os.Create(convertedFile)
 	if err != nil {
-		return "", "", fmt.Errorf("error creating new image: %s, error: %s", inputFile, err.Error())
+		return "", "", fmt.Errorf("error creating new image: %s, error: %w", inputFile, err)
 	}
 
 	if err := jpeg.Encode(out, imgData, &jpeg.Options{Quality: 100}); err != nil {
-		return "", "", fmt.Errorf("error encoding new image: %s, error: %s", inputFile, err.Error())
+		return "", "", fmt.Errorf("error encoding new image: %s, error: %w", inputFile, err)
 	}
 
 	if err := out.Close(); err != nil {
-		return "", "", fmt.Errorf("error closing new image: %s, error: %s", inputFile, err.Error())
+		return "", "", fmt.Errorf("error closing new image: %s, error: %w", inputFile, err)
 	}
 
 	if err := origFile.Close(); err != nil {
-		return "", "", fmt.Errorf("error closing new image: %s, error: %s", inputFile, err.Error())
+		return "", "", fmt.Errorf("error closing new image: %s, error: %w", inputFile, err)
 	}
 
 	if !fakeJPG {
 		if err := os.Remove(inputFile); err != nil {
-			return "", "", fmt.Errorf("error removing image: %s, error: %s", inputFile, err.Error())
+			return "", "", fmt.Errorf("error removing image: %s, error: %w", inputFile, err)
 		}
 	}
 
