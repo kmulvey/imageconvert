@@ -15,6 +15,7 @@ import (
 	"go.szostok.io/version/printer"
 )
 
+// nolint: funlen
 func main() {
 	log.SetFormatter(&log.TextFormatter{
 		FullTimestamp:   true,

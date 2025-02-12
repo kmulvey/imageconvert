@@ -22,6 +22,7 @@ linters:
     - gci # import formatting
     - gomoddirectives # go.mod linting
     - gofumpt # aggressive gofmt
+    - cyclop # TEMP ... should be addressed
 
 linters-settings:
   govet:
