@@ -21,7 +21,8 @@ var compressTestCases []compressTestCase // nolint: gochecknoglobals
 func TestQualityCheck(t *testing.T) {
 	t.Parallel()
 
-	var testdir = testimages.MakeTestDir(t)
+	testdir, err := testimages.MakeTestDir()
+	assert.NoError(t, err)
 	for _, testCase := range compressTestCases {
 		var testImage = filepath.Join(testdir, testCase.InputPath)
 
@@ -45,7 +46,8 @@ func TestQualityCheck(t *testing.T) {
 func TestCompressJPEG(t *testing.T) {
 	t.Parallel()
 
-	var testdir = testimages.MakeTestDir(t)
+	testdir, err := testimages.MakeTestDir()
+	assert.NoError(t, err)
 	for _, testCase := range compressTestCases {
 		var testImage = filepath.Join(testdir, testCase.InputPath)
 

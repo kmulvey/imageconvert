@@ -15,10 +15,11 @@ func TestConvertImage(t *testing.T) {
 	t.Parallel()
 
 	// setup
-	var testdir = testimages.MakeTestDir(t)
+	testdir, err := testimages.MakeTestDir()
+	assert.NoError(t, err)
 	var testImage = filepath.Join(testdir, "testwebp.webp")
 
-	var ic, err = New(testImage, "", 0, WithCompression(uint8(90)), WithResize(200, 100, 300, 200))
+	ic, err := New(testImage, "", 0, WithCompression(uint8(90)), WithResize(200, 100, 300, 200))
 	assert.NoError(t, err)
 
 	originalFile, err := path.NewEntry(testImage, 0)

@@ -18,8 +18,10 @@ func TestParseSkipMap(t *testing.T) {
 	t.Parallel()
 
 	// setup
-	var testdir = testimages.MakeTestDir(t)
-	var handle, err = os.OpenFile(filepath.Join(testdir, "skipFile"), os.O_RDWR|os.O_CREATE, 0755)
+	testdir, err := testimages.MakeTestDir()
+	assert.NoError(t, err)
+
+	handle, err := os.OpenFile(filepath.Join(testdir, "skipFile"), os.O_RDWR|os.O_CREATE, 0755)
 	assert.NoError(t, err)
 	_, err = handle.WriteString("realjpg.jpg")
 	assert.NoError(t, err)
@@ -54,8 +56,10 @@ func TestGetFileList(t *testing.T) {
 	t.Parallel()
 
 	// setup
-	var testdir = testimages.MakeTestDir(t)
-	var handle, err = os.OpenFile(filepath.Join(testdir, "skipFile"), os.O_RDWR|os.O_CREATE, 0755)
+	testdir, err := testimages.MakeTestDir()
+	assert.NoError(t, err)
+
+	handle, err := os.OpenFile(filepath.Join(testdir, "skipFile"), os.O_RDWR|os.O_CREATE, 0755)
 	assert.NoError(t, err)
 	_, err = handle.WriteString("realjpg.jpg")
 	assert.NoError(t, err)
@@ -81,10 +85,11 @@ func TestHasEOI(t *testing.T) {
 	t.Parallel()
 
 	// setup
-	var testdir = testimages.MakeTestDir(t)
+	testdir, err := testimages.MakeTestDir()
+	assert.NoError(t, err)
 	var testImage = filepath.Join(testdir, "realjpg.jpg")
 
-	var has, err = hasEOI(testImage)
+	has, err := hasEOI(testImage)
 	assert.NoError(t, err)
 	assert.True(t, has)
 
@@ -103,9 +108,11 @@ func TestWaitTilFileWritesComplete(t *testing.T) {
 	t.Parallel()
 
 	// setup
-	var testdir = testimages.MakeTestDir(t)
+	testdir, err := testimages.MakeTestDir()
+	assert.NoError(t, err)
 	var testImage = filepath.Join(testdir, "realjpg.jpg")
-	var fileAbs, err = filepath.Abs(testImage)
+
+	fileAbs, err := filepath.Abs(testImage)
 	assert.NoError(t, err)
 
 	var DummyEntry = path.Entry{

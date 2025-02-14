@@ -21,7 +21,8 @@ var convertTestCases []convertTestCase // nolint: gochecknoglobals
 func TestConvert(t *testing.T) {
 	t.Parallel()
 
-	var testdir = testimages.MakeTestDir(t)
+	testdir, err := testimages.MakeTestDir()
+	assert.NoError(t, err)
 
 	for _, testCase := range testimages.TestCases {
 		var testImage = filepath.Join(testdir, testCase.InputPath)
@@ -63,7 +64,8 @@ func TestConvertErrors(t *testing.T) {
 func TestWouldOverwrite(t *testing.T) {
 	t.Parallel()
 
-	var testdir = testimages.MakeTestDir(t)
+	testdir, err := testimages.MakeTestDir()
+	assert.NoError(t, err)
 
 	for _, image := range testimages.TestCases {
 		var overwrite = WouldOverwrite(filepath.Join(testdir, image.InputPath))

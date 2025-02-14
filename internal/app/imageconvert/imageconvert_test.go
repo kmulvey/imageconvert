@@ -15,10 +15,11 @@ func TestNewWithDefaults(t *testing.T) {
 	t.Parallel()
 
 	// setup
-	var testdir = testimages.MakeTestDir(t)
+	var testdir, err = testimages.MakeTestDir()
+	assert.NoError(t, err)
 	var testImage = filepath.Join(testdir, "realjpg.jpg")
 
-	var ic, err = New(testImage, "", 0, WithCompression(uint8(90)), WithWatch(), WithForce(), WithResize(200, 100, 300, 200), WithThreads(3), WithTimeRange(humantime.TimeRange{From: time.Time{}, To: time.Now()}))
+	ic, err := New(testImage, "", 0, WithCompression(uint8(90)), WithWatch(), WithForce(), WithResize(200, 100, 300, 200), WithThreads(3), WithTimeRange(humantime.TimeRange{From: time.Time{}, To: time.Now()}))
 	assert.NoError(t, err)
 
 	assert.Equal(t, uint8(90), ic.CompressQuality)
@@ -39,9 +40,10 @@ func TestStartSlice(t *testing.T) {
 	t.Parallel()
 
 	// setup
-	var testdir = testimages.MakeTestDir(t)
+	var testdir, err = testimages.MakeTestDir()
+	assert.NoError(t, err)
 
-	var ic, err = New(testdir, "", 1, WithCompression(uint8(90)))
+	ic, err := New(testdir, "", 1, WithCompression(uint8(90)))
 	assert.NoError(t, err)
 	assert.Equal(t, 1, ic.Threads)
 
