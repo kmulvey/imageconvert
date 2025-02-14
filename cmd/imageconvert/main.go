@@ -104,12 +104,10 @@ func parseParams(compress, force, watch bool, threads int, timerange humantime.T
 		configs = append(configs, imageconvert.WithWatch())
 	}
 
-	if threads > 1 {
-		if threads <= 0 || threads > runtime.GOMAXPROCS(0) {
-			return nil, fmt.Errorf("invalid number of threads: %d, min: 0, max: %d", threads, runtime.GOMAXPROCS(0)) //nolint: err113
-		}
-		configs = append(configs, imageconvert.WithThreads(threads))
+	if threads <= 0 || threads > runtime.GOMAXPROCS(0) {
+		return nil, fmt.Errorf("invalid number of threads: %d, min: 0, max: %d", threads, runtime.GOMAXPROCS(0)) //nolint: err113
 	}
+	configs = append(configs, imageconvert.WithThreads(threads))
 
 	if timerange.From != imageconvert.NilTime || timerange.To != imageconvert.NilTime {
 		configs = append(configs, imageconvert.WithTimeRange(timerange))

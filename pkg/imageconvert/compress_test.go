@@ -3,7 +3,6 @@ package imageconvert
 import (
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"testing"
 
@@ -11,18 +10,29 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type compressTestCase struct {
+	testimages.TestCase
+	ShouldCompress   bool
+	PartialErrString string
+}
+
+var compressTestCases []compressTestCase // nolint: gochecknoglobals
+
 func TestQualityCheck(t *testing.T) {
 	t.Parallel()
 
-	var testdir = testimages.MakeTestDir(t)
-	var testImage = filepath.Join(testdir, "realjpg.jpg")
-
-	aboveThreshold, err := QualityCheck(90, testImage)
+	testdir, err := testimages.MakeTestDir()
 	assert.NoError(t, err)
-	assert.True(t, aboveThreshold)
+	for _, testCase := range compressTestCases {
+		var testImage = filepath.Join(testdir, testCase.InputPath)
+
+		aboveThreshold, err := QualityCheck(90, testImage)
+		assert.NoError(t, err, testCase.InputPath)
+		assert.True(t, aboveThreshold, testCase.InputPath)
+	}
 
 	assert.NoError(t, os.WriteFile(filepath.Join(testdir, "test.txt"), make([]byte, 10), 0600))
-	aboveThreshold, err = QualityCheck(90, filepath.Join(testdir, "test.txt"))
+	aboveThreshold, err := QualityCheck(90, filepath.Join(testdir, "test.txt"))
 	assert.True(t, strings.HasPrefix(err.Error(), "error running identify on image:"))
 	assert.False(t, aboveThreshold)
 
@@ -36,29 +46,23 @@ func TestQualityCheck(t *testing.T) {
 func TestCompressJPEG(t *testing.T) {
 	t.Parallel()
 
-	var testdir = testimages.MakeTestDir(t)
-	var testImage = filepath.Join(testdir, "realjpg.jpg")
-
-	var compressed, _, err = CompressJPEG(90, testImage)
+	testdir, err := testimages.MakeTestDir()
 	assert.NoError(t, err)
-	assert.True(t, compressed)
+	for _, testCase := range compressTestCases {
+		var testImage = filepath.Join(testdir, testCase.InputPath)
 
-	// do it til it wont compress anymore
-	var skipped bool
-	for range 10 {
-		compressed, _, err = CompressJPEG(90, testImage)
-		assert.NoError(t, err)
-		if !compressed {
-			skipped = true
-			break
+		var compressed, _, err = CompressJPEG(90, testImage)
+		if testCase.PartialErrString != "" {
+			assert.Error(t, err, testCase.InputPath)
+			assert.Contains(t, err.Error(), testCase.PartialErrString, testCase.InputPath)
+		} else {
+			assert.NoError(t, err, testCase.InputPath)
 		}
-	}
-	if runtime.GOOS != "windows" { // windows cant do anything right
-		assert.True(t, skipped)
+		assert.Equal(t, testCase.ShouldCompress, compressed, testCase.InputPath)
 	}
 
 	assert.NoError(t, os.WriteFile(filepath.Join(testdir, "test.txt"), make([]byte, 10), 0600))
-	compressed, _, err = CompressJPEG(90, filepath.Join(testdir, "test.txt"))
+	compressed, _, err := CompressJPEG(90, filepath.Join(testdir, "test.txt"))
 	assert.True(t, strings.HasPrefix(err.Error(), "error running jpegoptim on image:"))
 	assert.False(t, compressed)
 

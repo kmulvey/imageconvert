@@ -12,7 +12,8 @@ import (
 func TestResize(t *testing.T) {
 	t.Parallel()
 
-	var testdir = testimages.MakeTestDir(t)
+	testdir, err := testimages.MakeTestDir()
+	assert.NoError(t, err)
 	var testImage = filepath.Join(testdir, "realjpg.jpg")
 
 	resized, err := Resize(testImage, 300, 200, 200, 100)
