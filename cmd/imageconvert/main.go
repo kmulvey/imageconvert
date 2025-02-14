@@ -61,7 +61,7 @@ func main() {
 
 	log.Infof("Config: dir: %s, log file: %s, compress: %t, force: %t, watch: %t, threads: %d, modified-since: %s", inputPath, processedLogFile, compress, force, watch, threads, timerange)
 
-	var configs, err = parseParams(compress, force, watch, uint8(threads), timerange, strings.TrimSpace(resizeThreshold), strings.TrimSpace(resizeSize))
+	var configs, err = parseParams(compress, force, watch, threads, timerange, strings.TrimSpace(resizeThreshold), strings.TrimSpace(resizeSize))
 	if err != nil {
 		log.Fatalf("error parsing configs: %s", err)
 	}
@@ -88,7 +88,7 @@ func main() {
 	}).Info("Done")
 }
 
-func parseParams(compress, force, watch bool, threads uint8, timerange humantime.TimeRange, resizeThreshold, resizeSize string) ([]imageconvert.ConfigFunc, error) {
+func parseParams(compress, force, watch bool, threads int, timerange humantime.TimeRange, resizeThreshold, resizeSize string) ([]imageconvert.ConfigFunc, error) {
 
 	var configs []imageconvert.ConfigFunc
 
@@ -105,7 +105,7 @@ func parseParams(compress, force, watch bool, threads uint8, timerange humantime
 	}
 
 	if threads > 1 {
-		if threads <= 0 || threads > uint8(runtime.GOMAXPROCS(0)) {
+		if threads <= 0 || threads > runtime.GOMAXPROCS(0) {
 			return nil, fmt.Errorf("invalid number of threads: %d, min: 0, max: %d", threads, runtime.GOMAXPROCS(0)) //nolint: err113
 		}
 		configs = append(configs, imageconvert.WithThreads(threads))

@@ -28,7 +28,7 @@ func TestNewWithDefaults(t *testing.T) {
 	assert.Equal(t, uint16(300), ic.ResizeWidthThreshold)
 	assert.Equal(t, uint16(100), ic.ResizeHeight)
 	assert.Equal(t, uint16(200), ic.ResizeHeightThreshold)
-	assert.Equal(t, uint8(3), ic.Threads)
+	assert.Equal(t, 3, ic.Threads)
 	assert.Equal(t, time.Time{}, ic.TimeRange.From)
 	assert.Equal(t, time.Now().Day(), ic.TimeRange.To.Day())
 
@@ -43,7 +43,7 @@ func TestStartSlice(t *testing.T) {
 
 	var ic, err = New(testdir, "", 1, WithCompression(uint8(90)))
 	assert.NoError(t, err)
-	assert.Equal(t, uint8(1), ic.Threads)
+	assert.Equal(t, 1, ic.Threads)
 
 	compressedTotal, renamedTotal, resizedTotal, totalFiles, conversionTypeTotals, err := ic.Start(nil)
 	assert.NoError(t, err)

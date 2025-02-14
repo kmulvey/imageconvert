@@ -1,6 +1,7 @@
 package imageconvert
 
 import (
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -32,6 +33,8 @@ func TestConvertImage(t *testing.T) {
 	assert.True(t, cr.Compressed)
 	assert.False(t, cr.Renamed)
 	assert.True(t, cr.Resized)
+
+	assert.NoError(t, os.RemoveAll(testdir))
 }
 
 /* not sure what the point of the below was
