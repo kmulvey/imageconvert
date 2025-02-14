@@ -26,7 +26,7 @@ func TestParseSkipMap(t *testing.T) {
 	err = handle.Close()
 	assert.NoError(t, err)
 
-	ic, err := NewWithDefaults(testdir, filepath.Join(testdir, "skipFile"), 0)
+	ic, err := New(testdir, filepath.Join(testdir, "skipFile"), 0)
 	assert.NoError(t, err)
 
 	skipMap, err := ic.ParseSkipMap()
@@ -62,7 +62,7 @@ func TestGetFileList(t *testing.T) {
 	err = handle.Close()
 	assert.NoError(t, err)
 
-	ic, err := NewWithDefaults(testdir, filepath.Join(testdir, "skipFile"), 0)
+	ic, err := New(testdir, filepath.Join(testdir, "skipFile"), 0)
 	assert.NoError(t, err)
 
 	// this is what will create the error in getFileList
@@ -84,9 +84,17 @@ func TestHasEOI(t *testing.T) {
 	var testdir = testimages.MakeTestDir(t)
 	var testImage = filepath.Join(testdir, "realjpg.jpg")
 
-	assert.True(t, hasEOI(testImage))
-	assert.False(t, hasEOI("./files_test.go"))
-	assert.False(t, hasEOI("./doesnotexist"))
+	var has, err = hasEOI(testImage)
+	assert.NoError(t, err)
+	assert.True(t, has)
+
+	has, err = hasEOI("./files_test.go")
+	assert.NoError(t, err)
+	assert.False(t, has)
+
+	has, err = hasEOI("./doesnotexist")
+	assert.Error(t, err)
+	assert.False(t, has)
 
 	assert.NoError(t, os.RemoveAll(testdir))
 }

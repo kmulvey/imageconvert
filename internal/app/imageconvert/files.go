@@ -12,7 +12,6 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/kmulvey/path"
-	log "github.com/sirupsen/logrus"
 )
 
 // ImageExtensionRegex captures file extensions we can work with.
@@ -137,7 +136,7 @@ func waitTilFileWritesComplete(eventsIn, eventsOut chan path.WatchEvent) {
 		case <-ticker.C:
 
 			for filename, entry := range cache {
-				if hasEOI(filename) {
+				if has, _ := hasEOI(filename); has { // not really sure what to do with this error
 					eventsOut <- entry.WatchEvent
 					delete(cache, filename)
 				}
@@ -148,12 +147,11 @@ func waitTilFileWritesComplete(eventsIn, eventsOut chan path.WatchEvent) {
 
 // hasEOI looks for the End of Image marker at the end of the file. Im not crazy about logging these errors
 // but also kinda dont want to bubble them up either. Something to reconsider in the future.
-func hasEOI(filepath string) bool {
+func hasEOI(filepath string) (bool, error) {
 
 	var file, err = os.OpenFile(filepath, os.O_RDONLY, 0755)
 	if err != nil {
-		log.Errorf("error opening file: %s", err)
-		return false
+		return false, fmt.Errorf("error opening file: %w", err)
 	}
 	defer file.Close()
 
@@ -161,21 +159,19 @@ func hasEOI(filepath string) bool {
 
 	stat, err := os.Stat(filepath)
 	if err != nil {
-		log.Errorf("error opening file: %s", err)
-		return false
+		return false, fmt.Errorf("error stating file: %w", err)
 	}
 
 	start := stat.Size() - 2
 
 	_, err = file.ReadAt(buf, start)
 	if err != nil {
-		log.Errorf("error opening file: %s", err)
-		return false
+		return false, fmt.Errorf("error reading file: %w", err)
 	}
 
 	if buf[0] == 0xFF && buf[1] == 0xD9 {
-		return true
+		return true, nil
 	}
 
-	return false
+	return false, nil
 }

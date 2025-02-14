@@ -1,6 +1,7 @@
 package imageconvert
 
 import (
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -17,9 +18,7 @@ func TestConvertImage(t *testing.T) {
 	var testdir = testimages.MakeTestDir(t)
 	var testImage = filepath.Join(testdir, "testwebp.webp")
 
-	var ic, err = NewWithDefaults(testImage, "", 0)
-	ic.WithCompression(uint8(90))
-	ic.WithResize(200, 100, 300, 200)
+	var ic, err = New(testImage, "", 0, WithCompression(uint8(90)), WithResize(200, 100, 300, 200))
 	assert.NoError(t, err)
 
 	originalFile, err := path.NewEntry(testImage, 0)
@@ -34,6 +33,8 @@ func TestConvertImage(t *testing.T) {
 	assert.True(t, cr.Compressed)
 	assert.False(t, cr.Renamed)
 	assert.True(t, cr.Resized)
+
+	assert.NoError(t, os.RemoveAll(testdir))
 }
 
 /* not sure what the point of the below was

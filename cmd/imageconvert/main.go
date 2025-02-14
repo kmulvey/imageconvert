@@ -1,7 +1,9 @@
 package main
 
 import (
+	"errors"
 	"flag"
+	"fmt"
 	"os"
 	"runtime"
 	"strconv"
@@ -26,7 +28,7 @@ func main() {
 	var inputPath, processedLogFile, resizeThreshold, resizeSize string
 	var compress, force, watch, v, h bool
 	var threads, directoryDepth int
-	var tr humantime.TimeRange
+	var timerange humantime.TimeRange
 
 	flag.StringVar(&inputPath, "path", "", "path to files, globbing must be quoted")
 	flag.StringVar(&processedLogFile, "processed-file", "processed.log", "the file to write processes images to, so that we dont processes them again next time")
@@ -34,7 +36,7 @@ func main() {
 	flag.StringVar(&resizeSize, "resize-size", "", "the size to resize the images to while preserving the aspect ratio [width]x[height] e.g. 5120x2880")
 	flag.IntVar(&threads, "threads", 1, "number of threads to use")
 	flag.IntVar(&directoryDepth, "depth", 1, "number levels to search directories for images")
-	flag.Var(&tr, "time-range", "process files chnaged since this time")
+	flag.Var(&timerange, "time-range", "process files chnaged since this time")
 	flag.BoolVar(&compress, "compress", true, "compress")
 	flag.BoolVar(&force, "force", false, "force")
 	flag.BoolVar(&watch, "watch", false, "watch the dir")
@@ -57,54 +59,18 @@ func main() {
 		os.Exit(0)
 	}
 
-	if threads <= 0 || threads > runtime.GOMAXPROCS(0) {
-		threads = 1
-		log.Infof("invalid thread count: %d, setting threads to 1", threads)
-	}
+	log.Infof("Config: dir: %s, log file: %s, compress: %t, force: %t, watch: %t, threads: %d, modified-since: %s", inputPath, processedLogFile, compress, force, watch, threads, timerange)
 
-	log.Infof("Config: dir: %s, log file: %s, compress: %t, force: %t, watch: %t, threads: %d, modified-since: %s", inputPath, processedLogFile, compress, force, watch, threads, tr)
+	var configs, err = parseParams(compress, force, watch, threads, timerange, strings.TrimSpace(resizeThreshold), strings.TrimSpace(resizeSize))
+	if err != nil {
+		log.Fatalf("error parsing configs: %s", err)
+	}
 
 	// nolint here because of the uint8 conversion of directory depth
 	// nolint:gosec
-	var ic, err = imageconvert.NewWithDefaults(inputPath, processedLogFile, uint8(directoryDepth))
+	ic, err := imageconvert.New(inputPath, processedLogFile, uint8(directoryDepth), configs...)
 	if err != nil {
 		log.Fatalf("error starting: %s", err)
-	}
-
-	if compress {
-		ic.WithCompression(90)
-	}
-
-	if force {
-		ic.WithForce()
-	}
-
-	resizeThreshold = strings.TrimSpace(resizeThreshold)
-	if resizeThreshold != "" {
-
-		var thresholdArr = strings.Split(resizeThreshold, "x")
-		if len(thresholdArr) != 2 {
-			log.Fatalf("resize threshold not in the format: [width]x[height] e.g. 230x400, input: %s, error: %s", resizeThreshold, err)
-		}
-
-		var sizeArr = strings.Split(resizeSize, "x")
-		if len(sizeArr) != 2 {
-			log.Fatalf("resize size not in the format: [width]x[height] e.g. 230x400, input: %s, error: %s", sizeArr, err)
-		}
-
-		ic.WithResize(getResizeValue(sizeArr[0]), getResizeValue(sizeArr[1]), getResizeValue(thresholdArr[0]), getResizeValue(thresholdArr[1]))
-	}
-
-	if watch {
-		ic.WithWatch()
-	}
-
-	if threads > 1 {
-		ic.WithThreads(threads)
-	}
-
-	if tr.From != imageconvert.NilTime || tr.To != imageconvert.NilTime {
-		ic.WithTimeRange(tr)
 	}
 
 	compressedTotal, renamedTotal, resizedTotal, totalFiles, conversionTypeTotals, err := ic.Start(nil)
@@ -120,6 +86,50 @@ func main() {
 		"resized":          resizedTotal,
 		"total files seen": totalFiles,
 	}).Info("Done")
+}
+
+func parseParams(compress, force, watch bool, threads int, timerange humantime.TimeRange, resizeThreshold, resizeSize string) ([]imageconvert.ConfigFunc, error) {
+
+	var configs []imageconvert.ConfigFunc
+
+	if compress {
+		configs = append(configs, imageconvert.WithCompression(90))
+	}
+
+	if force {
+		configs = append(configs, imageconvert.WithForce())
+	}
+
+	if watch {
+		configs = append(configs, imageconvert.WithWatch())
+	}
+
+	if threads > 1 {
+		if threads <= 0 || threads > runtime.GOMAXPROCS(0) {
+			return nil, fmt.Errorf("invalid number of threads: %d, min: 0, max: %d", threads, runtime.GOMAXPROCS(0)) //nolint: err113
+		}
+		configs = append(configs, imageconvert.WithThreads(threads))
+	}
+
+	if timerange.From != imageconvert.NilTime || timerange.To != imageconvert.NilTime {
+		configs = append(configs, imageconvert.WithTimeRange(timerange))
+	}
+
+	if resizeThreshold != "" {
+		var thresholdArr = strings.Split(resizeThreshold, "x")
+		if len(thresholdArr) != 2 {
+			return nil, errors.New("resize threshold not in the format: [width]x[height] e.g. 230x400, input: " + resizeThreshold) //nolint: err113
+		}
+
+		var sizeArr = strings.Split(resizeSize, "x")
+		if len(sizeArr) != 2 {
+			return nil, errors.New("resize size not in the format: [width]x[height] e.g. 230x400, input: " + resizeSize) //nolint: err113
+		}
+
+		configs = append(configs, imageconvert.WithResize(getResizeValue(sizeArr[0]), getResizeValue(sizeArr[1]), getResizeValue(thresholdArr[0]), getResizeValue(thresholdArr[1])))
+	}
+
+	return configs, nil
 }
 
 func getResizeValue(str string) uint16 {
