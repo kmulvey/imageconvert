@@ -30,48 +30,10 @@ type ImageConverter struct {
 	ShutdownCompleted []chan struct{}
 }
 
-// NewWithDefaults returns a new ImageConverter with conservative defaults. Use the WithX() functions to
-// further configure.
-func NewWithDefaults(inputPath, skipFile string, directoryDepth uint8) (ImageConverter, error) {
-
-	var ic = ImageConverter{
-		Threads:           1,
-		ShutdownCompleted: make([]chan struct{}, 1),
-	}
-	var err error
-
-	ic.InputEntry, err = path.NewEntry(inputPath, directoryDepth)
-	if err != nil {
-		return ic, fmt.Errorf("unable to create new entry for path: %s, err: %w", inputPath, err)
-	}
-
-	if strings.TrimSpace(skipFile) == "" {
-		skipFile = "processed.log"
-	}
-
-	handle, err := os.OpenFile(skipFile, os.O_RDWR|os.O_CREATE, 0755)
-	if err != nil {
-		return ic, fmt.Errorf("error opening skip file: %s, err: %w", skipFile, err)
-	}
-	if err := handle.Close(); err != nil {
-		return ic, fmt.Errorf("error closing handle to skip file: %s, err: %w", skipFile, err)
-	}
-
-	ic.SkipMapEntry, err = path.NewEntry(skipFile, 0)
-	if err != nil {
-		return ic, fmt.Errorf("error opening skip file: %s, err: %w", skipFile, err)
-	}
-
-	ic.InputFiles, err = ic.getFileList()
-	if err != nil {
-		return ic, err
-	}
-
-	return ic, nil
-}
-
+// ConfigFunc is used to configure ImageConverter, see examples below.
 type ConfigFunc func(*ImageConverter)
 
+// New returns a new ImageConverter with conservative defaults. Use ConfigFunc functions to further configure.
 func New(inputPath, skipFile string, directoryDepth uint8, configs ...ConfigFunc) (*ImageConverter, error) {
 
 	var ic = &ImageConverter{
