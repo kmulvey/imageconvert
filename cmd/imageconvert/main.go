@@ -106,7 +106,7 @@ func parseParams(compress, force, watch bool, threads uint8, timerange humantime
 
 	if threads > 1 {
 		if threads <= 0 || threads > uint8(runtime.GOMAXPROCS(0)) {
-			return nil, errors.New(fmt.Sprintf("invalid number of threads: %d, min: 0, max: %d", threads, runtime.GOMAXPROCS(0)))
+			return nil, fmt.Errorf("invalid number of threads: %d, min: 0, max: %d", threads, runtime.GOMAXPROCS(0)) //nolint: err113
 		}
 		configs = append(configs, imageconvert.WithThreads(threads))
 	}
@@ -118,12 +118,12 @@ func parseParams(compress, force, watch bool, threads uint8, timerange humantime
 	if resizeThreshold != "" {
 		var thresholdArr = strings.Split(resizeThreshold, "x")
 		if len(thresholdArr) != 2 {
-			return nil, errors.New("resize threshold not in the format: [width]x[height] e.g. 230x400, input: " + resizeThreshold)
+			return nil, errors.New("resize threshold not in the format: [width]x[height] e.g. 230x400, input: " + resizeThreshold) //nolint: err113
 		}
 
 		var sizeArr = strings.Split(resizeSize, "x")
 		if len(sizeArr) != 2 {
-			return nil, errors.New("resize size not in the format: [width]x[height] e.g. 230x400, input: " + resizeSize)
+			return nil, errors.New("resize size not in the format: [width]x[height] e.g. 230x400, input: " + resizeSize) //nolint: err113
 		}
 
 		configs = append(configs, imageconvert.WithResize(getResizeValue(sizeArr[0]), getResizeValue(sizeArr[1]), getResizeValue(thresholdArr[0]), getResizeValue(thresholdArr[1])))

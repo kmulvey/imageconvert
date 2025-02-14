@@ -136,7 +136,7 @@ func waitTilFileWritesComplete(eventsIn, eventsOut chan path.WatchEvent) {
 		case <-ticker.C:
 
 			for filename, entry := range cache {
-				if has, _ := hasEOI(filename); has { // TODO: not really sure what to do with this error
+				if has, _ := hasEOI(filename); has { // not really sure what to do with this error
 					eventsOut <- entry.WatchEvent
 					delete(cache, filename)
 				}
@@ -151,7 +151,7 @@ func hasEOI(filepath string) (bool, error) {
 
 	var file, err = os.OpenFile(filepath, os.O_RDONLY, 0755)
 	if err != nil {
-		return false, fmt.Errorf("error opening file: %s", err)
+		return false, fmt.Errorf("error opening file: %w", err)
 	}
 	defer file.Close()
 
@@ -159,14 +159,14 @@ func hasEOI(filepath string) (bool, error) {
 
 	stat, err := os.Stat(filepath)
 	if err != nil {
-		return false, fmt.Errorf("error stating file: %s", err)
+		return false, fmt.Errorf("error stating file: %w", err)
 	}
 
 	start := stat.Size() - 2
 
 	_, err = file.ReadAt(buf, start)
 	if err != nil {
-		return false, fmt.Errorf("error reading file: %s", err)
+		return false, fmt.Errorf("error reading file: %w", err)
 	}
 
 	if buf[0] == 0xFF && buf[1] == 0xD9 {
