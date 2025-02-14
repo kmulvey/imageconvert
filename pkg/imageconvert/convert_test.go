@@ -10,20 +10,27 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type convertTestCase struct {
+	testimages.TestCase
+	ShouldConvert    bool
+	PartialErrString string
+}
+
+var convertTestCases []convertTestCase // nolint: gochecknoglobals
+
 func TestConvert(t *testing.T) {
 	t.Parallel()
 
 	var testdir = testimages.MakeTestDir(t)
 
-	for _, image := range testimages.TestCases {
-
-		var testImage = filepath.Join(testdir, image.InputPath)
+	for _, testCase := range testimages.TestCases {
+		var testImage = filepath.Join(testdir, testCase.InputPath)
 
 		// convert
 		convertedImage, format, err := Convert(testImage)
-		assert.Equal(t, image.Err, err != nil, image.InputPath)
-		assert.Equal(t, image.OutputPath, filepath.Base(convertedImage), image.InputPath)
-		assert.Equal(t, image.ImageType, format)
+		assert.Equal(t, testCase.Err, err != nil, testCase.InputPath)
+		assert.Equal(t, testCase.OutputPath, filepath.Base(convertedImage), testCase.InputPath)
+		assert.Equal(t, testCase.ImageType, format)
 
 		// make sure input file was deleted by Convert()
 		if _, err := os.Stat(testImage); !errors.Is(err, os.ErrNotExist) {
