@@ -34,7 +34,6 @@ func Convert(inputFile string) (string, string, error) {
 	if err != nil {
 		return "", "", fmt.Errorf("error opening file for conversion, image: %s, error: %w", inputFile, err)
 	}
-	defer origFile.Close()
 
 	imgData, imageType, err := image.Decode(origFile)
 	if err != nil {
