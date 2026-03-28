@@ -50,4 +50,8 @@ linters:
     promlinter:
       disabled-linters:
         - "MetricUnits"
+    staticcheck:
+      checks:
+        - "all"
+        - "-QF1008" # allow explicit embedded field names in selectors for readability
 
