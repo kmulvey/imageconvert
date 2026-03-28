@@ -5,6 +5,7 @@ import (
 	"image"
 	"image/jpeg"
 	"os"
+	"path/filepath"
 
 	"github.com/kmulvey/resize"
 )
@@ -12,11 +13,10 @@ import (
 func Resize(filename string, resizeWidthThreshold, resizeHeightThreshold int, resizeWidth, resizeHeight uint) (bool, error) {
 
 	// open file
-	file, err := os.OpenFile(filename, os.O_RDONLY, 0755)
+	file, err := os.OpenFile(filename, os.O_RDONLY, 0600) //nolint:gosec // filename is a caller-supplied image path
 	if err != nil {
 		return false, fmt.Errorf("error opening file for resizing: %w", err)
 	}
-	defer file.Close()
 
 	// get image config so we can look at height and width
 	config, err := jpeg.DecodeConfig(file)
@@ -52,16 +52,20 @@ func Resize(filename string, resizeWidthThreshold, resizeHeightThreshold int, re
 		resizedImage = resize.Resize(0, resizeHeight, img, resize.Lanczos3)
 	}
 
-	out, err := os.Create(filename)
+	out, err := os.Create(filepath.Clean(filename))
 	if err != nil {
 		return false, fmt.Errorf("error opening file for resizing: %w", err)
 	}
-	defer out.Close()
 
 	// write new image to file
 	err = jpeg.Encode(out, resizedImage, nil)
 	if err != nil {
+		_ = out.Close()
 		return false, fmt.Errorf("error encoding resized image: %w", err)
+	}
+
+	if err = out.Close(); err != nil {
+		return false, fmt.Errorf("error closing resized image file: %w", err)
 	}
 
 	return true, nil

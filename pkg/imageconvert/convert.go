@@ -30,7 +30,7 @@ func Convert(inputFile string) (string, string, error) {
 	var ext = filepath.Ext(inputFile)
 	var convertedFile = strings.Replace(inputFile, ext, ".jpg", 1)
 
-	var origFile, err = os.OpenFile(inputFile, os.O_RDONLY, 0755)
+	var origFile, err = os.OpenFile(inputFile, os.O_RDONLY, 0600) //nolint:gosec // inputFile is a caller-supplied image path
 	if err != nil {
 		return "", "", fmt.Errorf("error opening file for conversion, image: %s, error: %w", inputFile, err)
 	}
@@ -60,7 +60,7 @@ func Convert(inputFile string) (string, string, error) {
 		return inputFile, imageType, errors.New("converting " + inputFile + " would overwrite an existing jpeg, skipping")
 	}
 
-	out, err := os.Create(convertedFile)
+	out, err := os.Create(filepath.Clean(convertedFile))
 	if err != nil {
 		return "", "", fmt.Errorf("error creating new image: %s, error: %w", inputFile, err)
 	}

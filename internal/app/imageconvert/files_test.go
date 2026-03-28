@@ -21,7 +21,7 @@ func TestParseSkipMap(t *testing.T) {
 	testdir, err := testimages.MakeTestDir()
 	assert.NoError(t, err)
 
-	handle, err := os.OpenFile(filepath.Join(testdir, "skipFile"), os.O_RDWR|os.O_CREATE, 0755)
+	handle, err := os.OpenFile(filepath.Join(testdir, "skipFile"), os.O_RDWR|os.O_CREATE, 0600) //nolint:gosec // test path constructed from known testdir
 	assert.NoError(t, err)
 	_, err = handle.WriteString("realjpg.jpg")
 	assert.NoError(t, err)
@@ -59,7 +59,7 @@ func TestGetFileList(t *testing.T) {
 	testdir, err := testimages.MakeTestDir()
 	assert.NoError(t, err)
 
-	handle, err := os.OpenFile(filepath.Join(testdir, "skipFile"), os.O_RDWR|os.O_CREATE, 0755)
+	handle, err := os.OpenFile(filepath.Join(testdir, "skipFile"), os.O_RDWR|os.O_CREATE, 0600) //nolint:gosec // test path constructed from known testdir
 	assert.NoError(t, err)
 	_, err = handle.WriteString("realjpg.jpg")
 	assert.NoError(t, err)

@@ -54,7 +54,7 @@ func TestStartSlice(t *testing.T) {
 	assert.Equal(t, 0, renamedTotal)
 	assert.Equal(t, 0, resizedTotal)
 	assert.Equal(t, 6, totalFiles)
-	assert.EqualValues(t, map[string]int{"jpeg": 2, "png": 2, "webp": 1}, conversionTypeTotals)
+	assert.Equal(t, map[string]int{"jpeg": 2, "png": 2, "webp": 1}, conversionTypeTotals)
 
 	assert.NoError(t, os.RemoveAll("processed.log"))
 	assert.NoError(t, os.RemoveAll(testdir))

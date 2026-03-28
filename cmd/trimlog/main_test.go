@@ -28,7 +28,7 @@ func TestChangeFileName(t *testing.T) {
 	assert.Error(t, cleanLogFile("noexist.log", "new.log"))
 	assert.Error(t, cleanLogFile(oldFile.Name(), "./nodir/new.log"))
 
-	newFile, err := os.OpenFile("new.log", os.O_RDONLY, 0755)
+	newFile, err := os.OpenFile("new.log", os.O_RDONLY, 0600)
 	assert.NoError(t, err)
 	var fileScanner = bufio.NewScanner(newFile)
 	fileScanner.Split(bufio.ScanLines)

@@ -30,7 +30,7 @@ func (ic *ImageConverter) Start(results chan ConversionResult) (int, int, int, i
 			results <- result
 		}
 	} else {
-		processedLogHanlde, err = os.OpenFile(ic.SkipMapEntry.String(), os.O_RDWR|os.O_APPEND|os.O_CREATE, 0755)
+		processedLogHanlde, err = os.OpenFile(ic.SkipMapEntry.String(), os.O_RDWR|os.O_APPEND|os.O_CREATE, 0600)
 		if err != nil {
 			return 0, 0, 0, 0, nil, fmt.Errorf("unable to open processed log file: %s, err: %w", ic.SkipMapEntry.String(), err)
 		}

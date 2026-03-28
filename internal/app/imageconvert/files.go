@@ -17,7 +17,7 @@ import (
 // ImageExtensionRegex captures file extensions we can work with.
 var ImageExtensionRegex = regexp.MustCompile(".*.jpg$|.*.jpeg$|.*.png$|.*.webp$|.*.JPG$|.*.JPEG$|.*.PNG$|.*.WEBP$")
 
-// RenameExtensionRegex captures file extensions that we would like to rename to the extensions above.
+// RenameSuffixRegex captures file extensions that we would like to rename to the extensions above.
 var RenameSuffixRegex = regexp.MustCompile(".*.jpeg$|.*.png$|.*.webp$|.*.JPG$|.*.JPEG$|.*.PNG$|.*.WEBP$")
 
 // NilTime is 0
@@ -29,7 +29,7 @@ var NilTime = time.Time{}
 // If you want to reprocess, just delete the file.
 func (ic *ImageConverter) ParseSkipMap() (map[string]struct{}, error) {
 
-	var processedImages, err = os.OpenFile(ic.SkipMapEntry.String(), os.O_RDONLY, 0755)
+	var processedImages, err = os.OpenFile(ic.SkipMapEntry.String(), os.O_RDONLY, 0600)
 	if err != nil && errors.Is(err, fs.ErrNotExist) {
 		// if the file doesnt exist its not really an error so we just return an empty map
 		return make(map[string]struct{}), nil
@@ -55,7 +55,7 @@ func (ic *ImageConverter) ParseSkipMap() (map[string]struct{}, error) {
 // getFileList filters the file list.
 func (ic *ImageConverter) getFileList() ([]path.Entry, error) {
 
-	if ic.TimeRange.To == NilTime {
+	if ic.TimeRange.To.Equal(NilTime) {
 		ic.TimeRange.To = time.Date(9999, 12, 31, 23, 59, 59, 0, time.UTC)
 	}
 	var dateFilter = path.NewDateEntitiesFilter(ic.TimeRange.From, ic.TimeRange.To)
@@ -93,7 +93,7 @@ func (ic *ImageConverter) watchDir(files chan path.WatchEvent) {
 	var ctx, cancel = context.WithCancel(context.Background())
 	defer cancel()
 
-	if ic.TimeRange.To == NilTime {
+	if ic.TimeRange.To.Equal(NilTime) {
 		ic.TimeRange.To = time.Date(9999, 12, 31, 23, 59, 59, 0, time.UTC)
 	}
 	var dateFilter = path.NewDateWatchFilter(ic.TimeRange.From, ic.TimeRange.To)
@@ -149,11 +149,11 @@ func waitTilFileWritesComplete(eventsIn, eventsOut chan path.WatchEvent) {
 // but also kinda dont want to bubble them up either. Something to reconsider in the future.
 func hasEOI(filepath string) (bool, error) {
 
-	var file, err = os.OpenFile(filepath, os.O_RDONLY, 0755)
+	var file, err = os.OpenFile(filepath, os.O_RDONLY, 0600) //nolint:gosec // filepath is a validated image path from the file walker
 	if err != nil {
 		return false, fmt.Errorf("error opening file: %w", err)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	buf := make([]byte, 2)
 

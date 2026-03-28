@@ -1,3 +1,4 @@
+// Package imageconvert provides the core application logic for converting, compressing, and resizing images.
 package imageconvert
 
 import (
@@ -13,6 +14,8 @@ import (
 
 // ImageConverter is the main config.
 type ImageConverter struct {
+	humantime.TimeRange
+
 	CompressQuality       uint8
 	Force                 bool
 	Watch                 bool
@@ -25,9 +28,8 @@ type ImageConverter struct {
 	InputFiles            []path.Entry
 	SkipMapEntry          path.Entry
 	SkipMap               map[string]struct{}
-	humantime.TimeRange
-	ShutdownTrigger   chan struct{}
-	ShutdownCompleted []chan struct{}
+	ShutdownTrigger       chan struct{}
+	ShutdownCompleted     []chan struct{}
 }
 
 // ConfigFunc is used to configure ImageConverter, see examples below.
@@ -51,7 +53,7 @@ func New(inputPath, skipFile string, directoryDepth uint8, configs ...ConfigFunc
 		skipFile = "processed.log"
 	}
 
-	handle, err := os.OpenFile(skipFile, os.O_RDWR|os.O_CREATE, 0755)
+	handle, err := os.OpenFile(skipFile, os.O_RDWR|os.O_CREATE, 0600) //nolint:gosec // skipFile is a user-configured log path
 	if err != nil {
 		return ic, fmt.Errorf("error opening skip file: %s, err: %w", skipFile, err)
 	}
@@ -76,7 +78,7 @@ func New(inputPath, skipFile string, directoryDepth uint8, configs ...ConfigFunc
 	return ic, nil
 }
 
-// AddCompression will compress the images.
+// WithCompression will compress the images.
 func WithCompression(quality uint8) func(*ImageConverter) {
 	return func(ic *ImageConverter) {
 		ic.CompressQuality = quality

@@ -12,6 +12,7 @@ import (
 
 type convertTestCase struct {
 	testimages.TestCase
+
 	ShouldConvert    bool
 	PartialErrString string
 }
@@ -49,14 +50,14 @@ func TestConvertErrors(t *testing.T) {
 	t.Parallel()
 
 	var convertedImage, format, err = Convert("testImage")
-	assert.Equal(t, "", convertedImage)
-	assert.Equal(t, "", format)
+	assert.Empty(t, convertedImage)
+	assert.Empty(t, format)
 	assert.Contains(t, err.Error(), "error opening file for conversion, image: testImage, error: open testImage:")
 
 	assert.NoError(t, os.WriteFile("testImage", make([]byte, 100), 0600))
 	convertedImage, format, err = Convert("testImage")
-	assert.Equal(t, "", convertedImage)
-	assert.Equal(t, "", format)
+	assert.Empty(t, convertedImage)
+	assert.Empty(t, format)
 	assert.Equal(t, "error decoding image: testImage, error: image: unknown format", err.Error())
 	assert.NoError(t, os.RemoveAll("testImage"))
 }

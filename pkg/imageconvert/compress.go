@@ -1,3 +1,4 @@
+// Package imageconvert provides image compression, conversion, and resizing functionality.
 package imageconvert
 
 import (
@@ -24,9 +25,9 @@ func QualityCheck(maxQuality int, imagePath string) (bool, error) {
 	// ubuntu does not use the 'magick' prefix, everything else does
 	var cmd = exec.Command("magick", "-version")
 	if err := cmd.Run(); err != nil {
-		cmd = exec.Command("identify", "-format", "'%Q'", imagePath)
+		cmd = exec.Command("identify", "-format", "'%Q'", imagePath) //nolint:gosec
 	} else {
-		cmd = exec.Command("magick", "identify", "-format", "'%Q'", imagePath)
+		cmd = exec.Command("magick", "identify", "-format", "'%Q'", imagePath) //nolint:gosec
 	}
 
 	var out bytes.Buffer
@@ -61,11 +62,9 @@ func CompressJPEG(quality int, imagePath string) (bool, string, error) {
 
 	// have to escape the file spaces for the exec call
 	var escapedImagePath = EscapeFilePath(imagePath)
-	// nolint here because its worried about the Itoa ... but why?!?!
-	// nolint:gosec
 	cmdStr := fmt.Sprintf("jpegoptim -p -o -v -m %d %s", quality, escapedImagePath)
 
-	var cmd = exec.Command("sh", "-c", cmdStr)
+	var cmd = exec.Command("sh", "-c", cmdStr) //nolint:gosec
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr

@@ -12,6 +12,7 @@ import (
 
 type compressTestCase struct {
 	testimages.TestCase
+
 	ShouldCompress   bool
 	PartialErrString string
 }

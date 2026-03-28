@@ -1,3 +1,4 @@
+// Package testimages provides embedded test images and helpers for imageconvert tests.
 package testimages
 
 import (
@@ -24,6 +25,7 @@ type TestCase struct {
 	Err            bool
 }
 
+// TestCases contains the test images used for testing imageconvert.
 // nolint:gochecknoglobals
 var TestCases = []TestCase{
 	{InputPath: "test.png", OutputPath: "test.jpg", ImageType: "png", ShouldConvert: true, WouldOverwrite: false, Err: false},
@@ -43,7 +45,7 @@ func MakeTestDir() (string, error) {
 
 	var testdir = filepath.Join(cwd, "testdir_"+goutils.RandomString(5))
 
-	if err := os.MkdirAll(testdir, os.ModePerm); err != nil {
+	if err := os.MkdirAll(testdir, 0750); err != nil {
 		return "", fmt.Errorf("failed to create test directory: %w", err)
 	}
 

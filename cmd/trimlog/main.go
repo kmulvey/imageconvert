@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/briandowns/spinner"
@@ -37,17 +38,17 @@ func main() {
 
 func cleanLogFile(oldLog, newLog string) error {
 
-	var oldFile, err = os.OpenFile(oldLog, os.O_RDONLY, 0755)
+	var oldFile, err = os.OpenFile(filepath.Clean(oldLog), os.O_RDONLY, 0600)
 	if err != nil {
 		return fmt.Errorf("error opening the old log file: %w", err)
 	}
-	defer oldFile.Close()
+	defer func() { _ = oldFile.Close() }()
 
-	newFile, err := os.Create(newLog)
+	newFile, err := os.Create(filepath.Clean(newLog))
 	if err != nil {
 		return fmt.Errorf("error opening the new log file: %w", err)
 	}
-	defer oldFile.Close()
+	defer func() { _ = newFile.Close() }()
 
 	var fileScanner = bufio.NewScanner(oldFile)
 	fileScanner.Split(bufio.ScanLines)
