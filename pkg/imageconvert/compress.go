@@ -11,16 +11,13 @@ import (
 )
 
 // QualityCheck uses imagemagick to determine the quality of the image
-// and returns true if the quality is above a given threshold.
-func QualityCheck(maxQuality int, imagePath string) (bool, error) {
+// and returns true if the quality is above a given threshold, along with the current quality value.
+func QualityCheck(maxQuality int, imagePath string) (bool, int, error) {
 
 	// lint input, helps prevent arbitrary code execution
 	if _, err := os.Stat(imagePath); err != nil {
-		return false, fmt.Errorf("error stating image: %s, err: %w", imagePath, err)
+		return false, 0, fmt.Errorf("error stating image: %s, err: %w", imagePath, err)
 	}
-
-	// have to escape the file spaces for the exec call
-	imagePath = EscapeFilePath(imagePath)
 
 	// ubuntu does not use the 'magick' prefix, everything else does
 	var cmd = exec.Command("magick", "-version")
@@ -36,16 +33,16 @@ func QualityCheck(maxQuality int, imagePath string) (bool, error) {
 	cmd.Stderr = &stderr
 
 	if err := cmd.Run(); err != nil {
-		return false, fmt.Errorf("error running identify on image: %s, error: %w, stderr: %s, output: %s", imagePath, err, stderr.String(), out.String())
+		return false, 0, fmt.Errorf("error running identify on image: %s, error: %w, stderr: %s, output: %s", imagePath, err, stderr.String(), out.String())
 	}
 
 	var qualityStr = strings.ReplaceAll(out.String(), "'", "")
 	imageQuality, err := strconv.ParseInt(qualityStr, 10, 0)
 	if err != nil {
-		return false, fmt.Errorf("error parsing int for quality on image: %s, quality: %s, error: %w", imagePath, qualityStr, err)
+		return false, 0, fmt.Errorf("error parsing int for quality on image: %s, quality: %s, error: %w", imagePath, qualityStr, err)
 	}
 
-	return imageQuality >= int64(maxQuality), nil
+	return imageQuality > int64(maxQuality), int(imageQuality), nil
 }
 
 // CompressJPEG uses jpegoptim to compress the image.

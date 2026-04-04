@@ -27,17 +27,18 @@ func TestQualityCheck(t *testing.T) {
 	for _, testCase := range compressTestCases {
 		var testImage = filepath.Join(testdir, testCase.InputPath)
 
-		aboveThreshold, err := QualityCheck(90, testImage)
+		aboveThreshold, currentQuality, err := QualityCheck(90, testImage)
 		assert.NoError(t, err, testCase.InputPath)
 		assert.True(t, aboveThreshold, testCase.InputPath)
+		assert.Positive(t, currentQuality, testCase.InputPath)
 	}
 
 	assert.NoError(t, os.WriteFile(filepath.Join(testdir, "test.txt"), make([]byte, 10), 0600))
-	aboveThreshold, err := QualityCheck(90, filepath.Join(testdir, "test.txt"))
+	aboveThreshold, _, err := QualityCheck(90, filepath.Join(testdir, "test.txt"))
 	assert.True(t, strings.HasPrefix(err.Error(), "error running identify on image:"))
 	assert.False(t, aboveThreshold)
 
-	aboveThreshold, err = QualityCheck(90, "not a file")
+	aboveThreshold, _, err = QualityCheck(90, "not a file")
 	assert.ErrorIs(t, err, os.ErrNotExist)
 	assert.False(t, aboveThreshold)
 
