@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"errors"
 	"flag"
 	"fmt"
@@ -25,12 +26,14 @@ func main() {
 	})
 
 	// get the user options
-	var inputPath, processedLogFile, resizeThreshold, resizeSize string
+	var directory, filesFlag, filesFrom, processedLogFile, resizeThreshold, resizeSize string
 	var compress, force, watch, v, h bool
 	var threads, directoryDepth int
 	var timerange humantime.TimeRange
 
-	flag.StringVar(&inputPath, "path", "", "path to files, globbing must be quoted")
+	flag.StringVar(&directory, "directory", "", "directory of images to process")
+	flag.StringVar(&filesFlag, "files", "", "comma-separated list of image files to process")
+	flag.StringVar(&filesFrom, "files-from", "", "path to a file containing image paths, one per line")
 	flag.StringVar(&processedLogFile, "processed-file", "processed.log", "the file to write processes images to, so that we dont processes them again next time")
 	flag.StringVar(&resizeThreshold, "resize-threshold", "", "the min size to consider for resizing in the formate [width]x[height] e.g. 2560x1440")
 	flag.StringVar(&resizeSize, "resize-size", "", "the size to resize the images to while preserving the aspect ratio [width]x[height] e.g. 5120x2880")
@@ -59,11 +62,32 @@ func main() {
 		os.Exit(0)
 	}
 
-	log.Infof("Config: dir: %s, log file: %s, compress: %t, force: %t, watch: %t, threads: %d, modified-since: %s", inputPath, processedLogFile, compress, force, watch, threads, timerange)
+	log.Infof("Config: dir: %s, log file: %s, compress: %t, force: %t, watch: %t, threads: %d, modified-since: %s", directory, processedLogFile, compress, force, watch, threads, timerange)
 
 	var configs, err = parseParams(compress, force, watch, threads, timerange, strings.TrimSpace(resizeThreshold), strings.TrimSpace(resizeSize))
 	if err != nil {
 		log.Fatalf("error parsing configs: %s", err)
+	}
+
+	// build input source: explicit files take priority over directory
+	var inputPath string
+	if filesFlag != "" || filesFrom != "" {
+		var filePaths []string
+		for _, f := range strings.Split(filesFlag, ",") {
+			if s := strings.TrimSpace(f); s != "" {
+				filePaths = append(filePaths, s)
+			}
+		}
+		if filesFrom != "" {
+			paths, err := readFilesFrom(filesFrom)
+			if err != nil {
+				log.Fatalf("error reading --files-from: %s", err)
+			}
+			filePaths = append(filePaths, paths...)
+		}
+		configs = append(configs, imageconvert.WithFiles(filePaths...))
+	} else {
+		inputPath = directory
 	}
 
 	// nolint here because of the uint8 conversion of directory depth
@@ -86,6 +110,24 @@ func main() {
 		"resized":          resizedTotal,
 		"total files seen": totalFiles,
 	}).Info("Done")
+}
+
+// readFilesFrom reads a file containing one image path per line and returns them as a slice.
+func readFilesFrom(filePath string) ([]string, error) {
+	f, err := os.Open(filePath) //nolint:gosec // filePath is user-provided CLI input
+	if err != nil {
+		return nil, fmt.Errorf("unable to open --files-from file: %w", err)
+	}
+	defer f.Close()
+
+	var paths []string
+	var scanner = bufio.NewScanner(f)
+	for scanner.Scan() {
+		if line := strings.TrimSpace(scanner.Text()); line != "" {
+			paths = append(paths, line)
+		}
+	}
+	return paths, scanner.Err()
 }
 
 func parseParams(compress, force, watch bool, threads int, timerange humantime.TimeRange, resizeThreshold, resizeSize string) ([]imageconvert.ConfigFunc, error) {
