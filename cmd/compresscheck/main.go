@@ -22,6 +22,7 @@ type quality struct {
 	err            error
 }
 
+// nolint: funlen
 func main() {
 	log.SetFormatter(&log.TextFormatter{
 		FullTimestamp:   true,
@@ -105,11 +106,15 @@ func main() {
 		if result.aboveThreshold {
 			compressible++
 			log.Infof("compressible: %s (current quality: %d, would save ~%d%%)", result.inputPath, result.currentQuality, result.currentQuality-qualityThreshold)
-			f.WriteString(result.inputPath + "\n")
+			if _, err := f.WriteString(result.inputPath + "\n"); err != nil {
+				log.Warnf("error writing to log file: %s", err)
+			}
 		}
 	}
 
-	f.Close()
+	if err := f.Close(); err != nil {
+		log.Warnf("error closing log file: %s", err)
+	}
 	log.Infof("Done: %d of %d files are compressible at quality threshold %d", compressible, len(ic.InputFiles), qualityThreshold)
 }
 

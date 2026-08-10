@@ -11,6 +11,8 @@ import (
 	"github.com/kmulvey/goutils"
 )
 
+const pngImageType = "png"
+
 //go:embed *.jpg
 //go:embed *.png
 //go:embed *.webp
@@ -28,12 +30,12 @@ type TestCase struct {
 // TestCases contains the test images used for testing imageconvert.
 // nolint:gochecknoglobals
 var TestCases = []TestCase{
-	{InputPath: "test.png", OutputPath: "test.jpg", ImageType: "png", ShouldConvert: true, WouldOverwrite: false, Err: false},
-	{InputPath: "fakejpg.jpg", OutputPath: "fakejpg.jpg", ImageType: "png", ShouldConvert: true, WouldOverwrite: true, Err: false},
+	{InputPath: "test.png", OutputPath: "test.jpg", ImageType: pngImageType, ShouldConvert: true, WouldOverwrite: false, Err: false},
+	{InputPath: "fakejpg.jpg", OutputPath: "fakejpg.jpg", ImageType: pngImageType, ShouldConvert: true, WouldOverwrite: true, Err: false},
 	{InputPath: "realjpg-portrait.jpg", OutputPath: "realjpg-portrait.jpg", ImageType: "jpeg", ShouldConvert: false, WouldOverwrite: true, Err: false},
 	{InputPath: "testwebp.webp", OutputPath: "testwebp.jpg", ImageType: "webp", ShouldConvert: true, WouldOverwrite: false, Err: false},
 	{InputPath: "realjpg.jpg", OutputPath: "realjpg.jpg", ImageType: "jpeg", ShouldConvert: false, WouldOverwrite: true, Err: false},
-	{InputPath: "realjpg.png", OutputPath: "realjpg.png", ImageType: "png", ShouldConvert: true, WouldOverwrite: true, Err: true},
+	{InputPath: "realjpg.png", OutputPath: "realjpg.png", ImageType: pngImageType, ShouldConvert: true, WouldOverwrite: true, Err: true},
 }
 
 func MakeTestDir() (string, error) {

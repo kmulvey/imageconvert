@@ -71,20 +71,11 @@ func main() {
 
 	// build input source: explicit files take priority over directory
 	var inputPath string
-	if filesFlag != "" || filesFrom != "" {
-		var filePaths []string
-		for _, f := range strings.Split(filesFlag, ",") {
-			if s := strings.TrimSpace(f); s != "" {
-				filePaths = append(filePaths, s)
-			}
-		}
-		if filesFrom != "" {
-			paths, err := readFilesFrom(filesFrom)
-			if err != nil {
-				log.Fatalf("error reading --files-from: %s", err)
-			}
-			filePaths = append(filePaths, paths...)
-		}
+	filePaths, err := buildFilePaths(filesFlag, filesFrom)
+	if err != nil {
+		log.Fatalf("error building file paths: %s", err)
+	}
+	if len(filePaths) > 0 {
 		configs = append(configs, imageconvert.WithFiles(filePaths...))
 	} else {
 		inputPath = directory
@@ -118,7 +109,6 @@ func readFilesFrom(filePath string) ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to open --files-from file: %w", err)
 	}
-	defer f.Close()
 
 	var paths []string
 	var scanner = bufio.NewScanner(f)
@@ -127,7 +117,32 @@ func readFilesFrom(filePath string) ([]string, error) {
 			paths = append(paths, line)
 		}
 	}
-	return paths, scanner.Err()
+
+	if err := f.Close(); err != nil {
+		return nil, fmt.Errorf("unable to close --files-from file: %w", err)
+	}
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("error reading --files-from file: %w", err)
+	}
+	return paths, nil
+}
+
+// buildFilePaths builds a combined list of file paths from filesFlag (comma-separated) and filesFrom (file-based).
+func buildFilePaths(filesFlag, filesFrom string) ([]string, error) {
+	var filePaths []string
+	for f := range strings.SplitSeq(filesFlag, ",") {
+		if s := strings.TrimSpace(f); s != "" {
+			filePaths = append(filePaths, s)
+		}
+	}
+	if filesFrom != "" {
+		paths, err := readFilesFrom(filesFrom)
+		if err != nil {
+			return nil, err
+		}
+		filePaths = append(filePaths, paths...)
+	}
+	return filePaths, nil
 }
 
 func parseParams(compress, force, watch bool, threads int, timerange humantime.TimeRange, resizeThreshold, resizeSize string) ([]imageconvert.ConfigFunc, error) {

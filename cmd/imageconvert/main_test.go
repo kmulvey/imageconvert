@@ -7,6 +7,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const (
+	resizeThresholdDefault = "2560x1440"
+	resizeSizeDefault      = "5120x2880"
+)
+
 type testCase struct {
 	name            string
 	compress        bool
@@ -28,8 +33,8 @@ var testCases = []testCase{
 		watch:           false,
 		threads:         2,
 		timerange:       humantime.TimeRange{},
-		resizeThreshold: "2560x1440",
-		resizeSize:      "5120x2880",
+		resizeThreshold: resizeThresholdDefault,
+		resizeSize:      resizeSizeDefault,
 		expectedError:   false,
 	},
 	{
@@ -39,8 +44,8 @@ var testCases = []testCase{
 		watch:           false,
 		threads:         -1,
 		timerange:       humantime.TimeRange{},
-		resizeThreshold: "2560x1440",
-		resizeSize:      "5120x2880",
+		resizeThreshold: resizeThresholdDefault,
+		resizeSize:      resizeSizeDefault,
 		expectedError:   true,
 	},
 	{
@@ -51,7 +56,7 @@ var testCases = []testCase{
 		threads:         1,
 		timerange:       humantime.TimeRange{},
 		resizeThreshold: "2560-1440",
-		resizeSize:      "5120x2880",
+		resizeSize:      resizeSizeDefault,
 		expectedError:   true,
 	},
 	{
@@ -61,7 +66,7 @@ var testCases = []testCase{
 		watch:           false,
 		threads:         1,
 		timerange:       humantime.TimeRange{},
-		resizeThreshold: "2560x1440",
+		resizeThreshold: resizeThresholdDefault,
 		resizeSize:      "5120-2880",
 		expectedError:   true,
 	},
