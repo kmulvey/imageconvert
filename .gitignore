@@ -17,6 +17,7 @@ cmd/imageconvert/imageconvert
 cmd/imageconvert/processed.log
 cmd/compresscheck/processed.log
 cmd/compresscheck/compresscheck.log
+cmd/trimlog/processed.log
 cmd/imageconvert/docs.sh
 cmd/imageconvert/upsized.sh
 cmd/trimlog/trimlog
