@@ -1,6 +1,6 @@
 # Image Convert
 
-[![Build](https://github.com/kmulvey/imageconvert/actions/workflows/build.yml/badge.svg)](https://github.com/kmulvey/imageconvert/actions/workflows/build.yml) [![Release](https://github.com/kmulvey/imageconvert/actions/workflows/release.yml/badge.svg)](https://github.com/kmulvey/imageconvert/actions/workflows/release.yml) [![Go Report Card](https://goreportcard.com/badge/github.com/kmulvey/imageconvert/v2)](https://goreportcard.com/report/github.com/kmulvey/imageconvert/v2) [![Go Reference](https://pkg.go.dev/badge/github.com/kmulvey/imageconvert/v2.svg)](https://pkg.go.dev/github.com/kmulvey/imageconvert/v2/pkg/imageconvert)
+[![Build](https://github.com/kmulvey/imageconvert/actions/workflows/build.yml/badge.svg)](https://github.com/kmulvey/imageconvert/actions/workflows/build.yml) [![Release](https://github.com/kmulvey/imageconvert/actions/workflows/release.yml/badge.svg)](https://github.com/kmulvey/imageconvert/actions/workflows/release.yml) [![Go Reference](https://pkg.go.dev/badge/github.com/kmulvey/imageconvert/v2.svg)](https://pkg.go.dev/github.com/kmulvey/imageconvert/v2/pkg/imageconvert)
 
 ImageConvert converts pngs and webps to jpeg and optionally compresses them with jpegoptim. 
 
