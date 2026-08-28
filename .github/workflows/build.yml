@@ -54,4 +54,4 @@ jobs:
           make build
 
       - name: Govulncheck
-        uses: kmulvey/govulncheck-action@v1.5.0
+        uses: kmulvey/govulncheck-action@v1.6.0
