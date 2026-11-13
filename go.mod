@@ -5,7 +5,7 @@ go 1.26.0
 require (
 	github.com/briandowns/spinner v1.23.2
 	github.com/fsnotify/fsnotify v1.10.1
-	github.com/hectane/go-acl v0.0.0-20230122075934-ca0b05cb1adb
+	github.com/hectane/go-acl v1.0.0
 	github.com/kmulvey/goutils v0.10.0
 	github.com/kmulvey/humantime v0.4.4
 	github.com/kmulvey/path v1.22.0
